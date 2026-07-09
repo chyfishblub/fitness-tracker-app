@@ -1,0 +1,56 @@
+/* ============================================================
+   styles.css — all the visual styling lives here now.
+   Separating CSS from HTML/JS is lesson #1 of "a real project":
+   each file has one job. Change how it LOOKS here, without
+   touching what it DOES (app.js) or what's IN it (data.js).
+   ============================================================ */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --green:#58CC02; --green-d:#58A700;
+  --blue:#1CB0F6;  --blue-d:#1899D6;
+  --red:#FF4B4B;   --red-d:#EA2B2B;
+  --gold:#FFC800;  --gold-d:#E6A700;
+  --purple:#CE82FF;--purple-d:#A560E8;
+  --orange:#FF9600;--orange-d:#E08600;
+  --ink:#4B4B4B; --grey:#AFAFAF; --line:#E5E5E5; --bg:#FFFFFF; --soft:#F7F7F7;
+}
+
+html, body {
+  font-family: 'Nunito', -apple-system, sans-serif;
+  background: var(--soft); color: var(--ink);
+  -webkit-font-smoothing: antialiased; font-weight: 700;
+}
+body { min-height: 100vh; display: flex; justify-content: center; }
+#app { width: 100%; max-width: 480px; min-height: 100vh; background: var(--bg); }
+
+.row { display: flex; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+
+/* The signature Duolingo "3D pressable" button */
+.btn3d {
+  border: none; border-radius: 16px; cursor: pointer; font-family: inherit;
+  font-weight: 800; color: #fff; position: relative;
+  box-shadow: 0 4px 0 var(--sd, #58A700);
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
+}
+.btn3d:active { transform: translateY(4px); box-shadow: 0 0 0 var(--sd,#58A700); }
+
+.card { background: #fff; border: 2px solid var(--line); border-radius: 18px; padding: 16px; }
+
+.tap { cursor: pointer; transition: transform 0.05s ease; }
+.tap:active { transform: scale(0.98); }
+
+.pill { border-radius: 14px; font-weight: 800; cursor: pointer; border: none; font-family: inherit; }
+
+input[type=number]::-webkit-inner-spin-button { opacity: 0.25; }
+input, textarea { font-family: inherit; font-weight: 700; }
+
+.streakNode {
+  aspect-ratio: 1; border-radius: 50%; border: none; cursor: pointer; font-family: inherit;
+  font-weight: 900; font-size: 15px; display:flex; align-items:center; justify-content:center;
+  transition: transform 0.08s ease;
+}
+.streakNode:active { transform: scale(0.9); }

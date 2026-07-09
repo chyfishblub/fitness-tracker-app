@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Fitness Tracker</title>
+
+  <!-- PWA: tells the browser this can be installed as an app -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#58CC02" />
+
+  <!-- iOS-specific: lets it install to the iPhone home screen and run full-screen -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Fitness Tracker" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app"></div>
+
+  <!-- Load order matters: data first (defines the plan), then the app (uses it) -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+
+  <!-- Register the service worker = offline support. Only runs when hosted (https/localhost), not file:// -->
+  <script>
+    if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").catch(err => console.log("SW registration skipped:", err));
+      });
+    }
+  </script>
+</body>
+</html>
