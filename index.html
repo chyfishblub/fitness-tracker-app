@@ -21,7 +21,8 @@
 <body>
   <div id="app"></div>
 
-  <!-- Load order matters: data first (defines the plan), then the app (uses it) -->
+  <!-- Load order matters: Chart.js (external lib) first, then data (the plan), then the app (uses both) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
 

@@ -13,7 +13,7 @@
    files, so the browser knows to refresh its cached copies.
    ============================================================ */
 
-const CACHE_NAME = "fitness-tracker-v1";
+const CACHE_NAME = "fitness-tracker-v2";
 const CORE_FILES = [
   "./",
   "./index.html",

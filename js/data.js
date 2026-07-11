@@ -11,6 +11,9 @@ const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 const TRIP_DATE = "2026-08-06T00:00:00";   // change this if your trip moves
 const isPeak = (w) => w === 4;             // week 5 (index 4) is peak week
 
+const START_WEIGHT = 60.0;
+const GOAL_WEIGHT = 56.5;   // realistic lean target for Phuket — not a crash-diet 55.0
+
 const weeklyTargets = [
   { focus: "Lock in protein + steps", note: "Dial in the deficit. Scale may barely move — ignore it." },
   { focus: "Consistency compounds", note: "Fat loss starts showing. Trust the process." },

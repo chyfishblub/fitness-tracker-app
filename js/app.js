@@ -15,6 +15,13 @@ function loadState() {
 let state = loadState();
 function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
 
+// ---------- WEIGHT CHART (Chart.js, loaded via CDN in index.html) ----------
+let weightChartInstance = null;
+if (typeof Chart !== "undefined") {
+  Chart.defaults.font.family = "'Nunito', -apple-system, sans-serif";
+  Chart.defaults.font.weight = 700;
+}
+
 function daysToTrip() { return Math.max(0, Math.ceil((new Date(TRIP_DATE) - new Date()) / 86400000)); }
 function totalProteinDays() { return Object.values(state.proteinHit).filter(Boolean).length; }
 
@@ -79,7 +86,7 @@ function sectionTitle(t){ return `<div style="font-size:13px;font-weight:900;col
 
 // ---------- TAB: DASHBOARD ----------
 function dashboard() {
-  const start=60.0, goal=55.0;
+  const start=START_WEIGHT, goal=GOAL_WEIGHT;
   const weighed=state.weeklyWeights.filter(w=>w!=="");
   const cur=weighed.length?weighed[weighed.length-1]:start;
   const lost=Math.max(0,start-parseFloat(cur)).toFixed(1);
@@ -130,6 +137,9 @@ function dashboard() {
   });
   h+='</div>';
 
+  h+=`<div class="card">${sectionTitle("Weight Trend")}
+    <div style="position:relative;height:190px"><canvas id="weightChart"></canvas></div></div>`;
+
   h+=`<div class="card">${sectionTitle("Weekly Check-in")}
     <div style="font-size:12px;color:var(--grey);margin-bottom:12px;font-weight:700">Realistic landing: ~56-57 kg, but visibly leaner. Lost so far: <b style="color:var(--green)">${lost}kg</b></div>`;
   weeklyTargets.forEach((wt,i)=>{
@@ -146,7 +156,7 @@ function dashboard() {
 
   h+=`<div style="background:#FFF4E5;border:2px solid var(--gold);border-radius:20px;padding:16px">
     <div style="font-size:14px;font-weight:900;color:var(--orange-d);margin-bottom:6px">💡 Real Talk</div>
-    <div style="font-size:12px;color:var(--ink);line-height:1.6;font-weight:700">Your Feb 25 scan was your best-looking composition — at <b>64 kg</b>. The scale lies. Lean + strong + good posture beats a smaller number every time. Aim to look your best, not to hit 55.0 exactly.</div></div>`;
+    <div style="font-size:12px;color:var(--ink);line-height:1.6;font-weight:700">Your Feb 25 scan was your best-looking composition — at <b>64 kg</b>. The scale lies. Lean + strong + good posture beats a smaller number every time. Aim to look your best, not to hit ${GOAL_WEIGHT} exactly.</div></div>`;
 
   // Backup panel — the new bit
   h+=`<div class="card">${sectionTitle("Backup / Move Devices")}
@@ -157,6 +167,74 @@ function dashboard() {
     </div></div>`;
 
   return h+'</div>';
+}
+
+function buildWeightChartData() {
+  const labels = state.weeklyWeights.map((_,i) => isPeak(i) ? "Peak" : "W"+(i+1));
+  const weighIns = state.weeklyWeights.map(w => w === "" ? null : parseFloat(w));
+  return {
+    labels,
+    datasets: [
+      {
+        label: "Weigh-in",
+        data: weighIns,
+        spanGaps: false,
+        borderColor: "#58CC02",
+        backgroundColor: "#58CC02",
+        pointBackgroundColor: "#58CC02",
+        pointBorderColor: "#fff",
+        pointBorderWidth: 2,
+        pointRadius: 6,
+        pointHoverRadius: 8,
+        borderWidth: 3,
+        tension: 0.3
+      },
+      {
+        label: `Target (~${GOAL_WEIGHT}kg)`,
+        data: Array(TOTAL_WEEKS).fill(GOAL_WEIGHT),
+        borderColor: "#FFC800",
+        borderDash: [6,6],
+        borderWidth: 2,
+        pointRadius: 0,
+        pointHitRadius: 0,
+        fill: false,
+        tension: 0
+      }
+    ]
+  };
+}
+function buildWeightChartOptions() {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: "bottom", labels: { boxWidth:12, boxHeight:12, padding:14, color:"#4B4B4B", font:{weight:800,size:11} } },
+      tooltip: {
+        backgroundColor: "#4B4B4B", padding: 10, cornerRadius: 10, displayColors: false,
+        titleFont: { weight: 900 }, bodyFont: { weight: 700 },
+        callbacks: { label: (ctx) => ctx.parsed.y === null ? "Not weighed" : `${ctx.dataset.label}: ${ctx.parsed.y}kg` }
+      }
+    },
+    scales: {
+      x: { grid: { display:false }, ticks: { color:"#AFAFAF", font:{weight:800,size:11} } },
+      y: {
+        grid: { color:"#E5E5E5" },
+        ticks: { color:"#AFAFAF", font:{weight:700,size:11}, callback:(v)=>v+"kg" },
+        suggestedMin: GOAL_WEIGHT - 2,
+        suggestedMax: START_WEIGHT + 1
+      }
+    }
+  };
+}
+function renderWeightChart() {
+  const canvas = document.getElementById("weightChart");
+  if (!canvas || typeof Chart === "undefined") return;
+  if (weightChartInstance) { weightChartInstance.destroy(); weightChartInstance = null; }
+  weightChartInstance = new Chart(canvas.getContext("2d"), {
+    type: "line",
+    data: buildWeightChartData(),
+    options: buildWeightChartOptions()
+  });
 }
 
 // ---------- TAB: WORKOUT ----------
@@ -282,6 +360,9 @@ function render() {
     </div>
     ${nav}
     <div style="padding:14px 14px 48px">${body}</div>`;
+
+  if (state.activeTab==='dashboard') renderWeightChart();
+  else if (weightChartInstance) { weightChartInstance.destroy(); weightChartInstance=null; }
 }
 
 // ---------- EVENTS ----------
