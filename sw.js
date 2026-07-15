@@ -1,28 +1,26 @@
 /* ============================================================
-   sw.js — the Service Worker. This is what makes the app work
-   OFFLINE and feel native. It caches your files the first time,
-   then serves them from cache so the app opens instantly even
-   with no internet (e.g. on the plane to Phuket ✈️).
-
-   How it works, in plain terms:
-   1. "install" → save a copy of the core files in a cache box.
-   2. "fetch"   → when the app asks for a file, hand back the
-                  cached copy if we have it, else fetch from network.
+   sw.js — the Service Worker. Caches the app shell so it opens
+   instantly, and handles Web Push notifications for meal-window
+   reminders (see docs/REFERENCE.md §5).
 
    NOTE: bump CACHE_NAME's version number whenever you change
    files, so the browser knows to refresh its cached copies.
    ============================================================ */
 
-const CACHE_NAME = "fitness-tracker-v2";
+const CACHE_NAME = "fitness-tracker-v3";
 const CORE_FILES = [
   "./",
   "./index.html",
   "./styles.css",
+  "./js/config.js",
+  "./js/supabase.js",
   "./js/data.js",
+  "./js/plan.js",
+  "./js/auth.js",
   "./js/app.js",
   "./manifest.json",
   "./icons/icon-192.png",
-  "./icons/icon-512.png"
+  "./icons/icon-512.png",
 ];
 
 // Install: pre-cache the core files
@@ -43,9 +41,38 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Fetch: serve from cache first, fall back to network
+// Fetch: serve the app shell from cache first, fall back to network.
+// Supabase API/storage calls aren't in CORE_FILES so they always hit the network.
 self.addEventListener("fetch", (event) => {
   event.respondWith(
     caches.match(event.request).then((cached) => cached || fetch(event.request))
+  );
+});
+
+// Push: show a notification for the meal window the Edge Function is nudging about.
+self.addEventListener("push", (event) => {
+  let payload = { title: "Fitness Tracker", body: "Time to log a meal 📸", url: "./" };
+  try { payload = { ...payload, ...event.data.json() }; } catch (e) {}
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: "./icons/icon-192.png",
+      badge: "./icons/icon-192.png",
+      data: { url: payload.url },
+    })
+  );
+});
+
+// Notification click: focus an open tab if there is one, else open a new one.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const targetUrl = (event.notification.data && event.notification.data.url) || "./";
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if ("focus" in client) return client.focus();
+      }
+      return self.clients.openWindow(targetUrl);
+    })
   );
 });

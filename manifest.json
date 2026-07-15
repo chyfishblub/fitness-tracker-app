@@ -1,7 +1,7 @@
 {
   "name": "Fitness Tracker",
   "short_name": "Tracker",
-  "description": "5-week muscle-sparing peak plan tracker",
+  "description": "Daily food journal + strength tracker with goal-based training plans",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#F7F7F7",
