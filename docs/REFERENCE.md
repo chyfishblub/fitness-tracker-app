@@ -181,10 +181,15 @@ the import is skipped.
   Function using `web-push`, invoked by Cron with `{"mealType": "..."}` per schedule).
 - Updated `index.html` load order, `sw.js` cache list (bumped to `v3`), `manifest.json`
   description, and `README.md` to describe the new architecture and setup flow.
-- **Not yet done / needs the user's own setup**: creating the actual Supabase project,
-  running the schema, filling in `js/config.js`, and (optionally) generating VAPID keys +
-  deploying the Edge Function. None of this has been tested end-to-end against a real
-  Supabase project yet — do that before trusting it in daily use.
+- **Update, same day**: Supabase project `fitness-tracker-app` created (region
+  ap-southeast-1), `supabase/schema.sql` run successfully (all 9 tables + `meal-photos`
+  bucket confirmed present), email magic-link auth enabled, and `js/config.js` filled in
+  with the real project URL + publishable key. Verified end-to-end with an automated
+  headless-browser check against the live project: the app loads with zero console errors
+  and a real magic-link email was successfully triggered via `signInWithOtp` (confirmed by
+  a 429 rate-limit response on a second attempt). Committed and pushed to `main`
+  (`0c73bd7`) — not yet manually walked through onboarding/sign-in as a human, and push
+  notifications (VAPID keys + Edge Function deploy) are still not set up.
 
 ### 2026-07-15 — Product direction set
 - Ran a full interview (3 rounds, 12 questions) to define the V1 scope for turning the
