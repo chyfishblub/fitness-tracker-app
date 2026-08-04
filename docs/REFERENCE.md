@@ -24,7 +24,7 @@ Browser (vanilla JS PWA)
         │
         ▼
 Supabase project
-├── Auth              email magic link
+├── Auth              anonymous guest session + email magic link
 ├── Postgres          one table per concern, RLS on every table (auth.uid() = user_id)
 ├── Storage           private bucket `meal-photos/{user_id}/...`, signed URLs for reads
 └── Edge Functions    send-meal-reminders (Web Push), triggered by Supabase Cron
@@ -121,7 +121,8 @@ unlogged, once past dinner).
 ## 6. Setup runbook
 
 1. Create a free project at supabase.com.
-2. **Auth** → Providers → enable Email and turn on "Magic Link". Then open **Auth →
+2. **Auth** → Providers → enable anonymous sign-ins. Enable Email and turn on "Magic Link".
+   Then open **Auth →
    URL Configuration**, set **Site URL** to the exact production origin, and add the
    production URL plus `/**` to Redirect URLs. Never leave the production Site URL set to
    `localhost`; Supabase falls back to Site URL when a requested redirect is not allowed.
@@ -166,6 +167,13 @@ the import is skipped.
 ---
 
 ## Changelog
+
+### 2026-08-04 — Guest sign-in
+- Added one-tap anonymous Supabase sign-in as the primary entry path, avoiding email delivery
+  limits while preserving the existing email magic-link option for cross-device access.
+- Added guest-account messaging in Profile, documented the device-bound limitation, extended
+  auth render checks, guarded guest sign-out against accidental data loss, and bumped the
+  installed-app shell cache to `v7`.
 
 ### 2026-08-04 — Full app design system and navigation overhaul
 - Replaced six horizontally scrolling top tabs with a persistent five-item bottom navigation:

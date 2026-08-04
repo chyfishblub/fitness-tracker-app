@@ -412,6 +412,14 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .auth-card label, .onboarding-fields label { display:block; margin:0 0 6px; color:var(--ink); font-size:12px; font-weight:900; }
 .auth-card input, .onboarding-fields input { width:100%; min-height:50px; padding:12px 13px; border:2px solid var(--line); border-radius:14px; background:var(--soft); font-size:15px; }
 .auth-card .primary-button { margin-top:11px; }
+.auth-card .guest-button { display:flex; align-items:center; justify-content:center; gap:10px; margin-top:2px; font-size:15px; }
+.auth-card .guest-button span { font-size:19px; line-height:1; }
+.guest-note { margin:11px auto 0; max-width:310px; color:var(--grey); font-size:10px; font-weight:700; line-height:1.45; text-align:center; }
+.auth-divider { display:flex; align-items:center; gap:10px; margin:18px 0 15px; color:var(--grey); font-size:9px; font-weight:900; letter-spacing:.6px; text-transform:uppercase; }
+.auth-divider::before, .auth-divider::after { content:""; flex:1; height:1px; background:var(--line); }
+.auth-divider span { white-space:nowrap; }
+.auth-card .email-signin-button { width:100%; margin-top:10px; }
+.auth-card button:disabled { cursor:wait; opacity:.72; }
 .form-message { min-height:18px; margin-top:10px; color:var(--grey); font-size:11px; font-weight:700; line-height:1.4; text-align:center; }
 .form-message.error { color:var(--red-d); }
 .onboarding-shell { min-height:100vh; padding:calc(16px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom)); background:var(--bg); }

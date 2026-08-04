@@ -675,13 +675,15 @@ if (typeof Chart !== "undefined") { Chart.defaults.font.family = "'Nunito', -app
 function profileTab() {
   const goal = DB.goal;
   const name = AUTH.profile.display_name || "Fitness member";
+  const isGuest = Boolean(AUTH.user.is_anonymous || !AUTH.user.email);
+  const accountLabel = isGuest ? "Guest account · saved on this device" : AUTH.user.email;
   const initial = name.trim().charAt(0).toUpperCase() || "F";
   const currentWeight = DB.weightEntries.length ? Number(DB.weightEntries[DB.weightEntries.length - 1].weight_kg) : Number(goal.start_weight);
   const weightDistance = Math.abs(Number(goal.start_weight) - Number(goal.goal_weight));
   const goalProgress = weightDistance ? Math.max(0, Math.min(100, Math.round((Math.abs(Number(goal.start_weight) - currentWeight) / weightDistance) * 100))) : 100;
   return `<div class="screen-stack profile-screen">
     ${screenHeading("ME", "Your space", "Goals, reminders, account, and app settings.")}
-    <section class="profile-identity"><div class="profile-avatar">${escapeHtml(initial)}</div><div><h2>${escapeHtml(name)}</h2><p>${escapeHtml(AUTH.user.email)}</p></div></section>
+    <section class="profile-identity"><div class="profile-avatar">${escapeHtml(initial)}</div><div><h2>${escapeHtml(name)}</h2><p>${escapeHtml(accountLabel)}</p></div></section>
     <section class="goal-detail-card">
       <div class="card-heading"><div><span>ACTIVE GOAL</span><h2>${escapeHtml(goal.title)}</h2></div><div class="goal-target">${goal.goal_weight}kg</div></div>
       <div class="goal-route"><span>${goal.start_weight}kg</span><i><b style="width:${goalProgress}%"></b></i><span>${goal.goal_weight}kg</span></div>
@@ -691,7 +693,7 @@ function profileTab() {
     </section>
     <section class="settings-card"><div class="card-heading"><div><span>PREFERENCES</span><h2>App settings</h2></div></div>
       <button class="settings-row" data-act="togglePush"><span class="settings-icon">🔔</span><span><strong>Meal reminders</strong><small>Breakfast, lunch, and dinner nudges</small></span><i>${ui.pushEnabled ? "On" : "Off"}</i></button>
-      <button class="settings-row danger" data-act="signOut"><span class="settings-icon">↗</span><span><strong>Sign out</strong><small>End this session on this device</small></span><i>›</i></button>
+      <button class="settings-row danger" data-act="signOut"><span class="settings-icon">↗</span><span><strong>Sign out</strong><small>${isGuest ? "Guest progress cannot be recovered after sign-out" : "End this session on this device"}</small></span><i>›</i></button>
     </section>
     <details class="advanced-card"><summary><span><strong>Advanced</strong><small>Legacy import and data tools</small></span><i>＋</i></summary>
       <div><p>Import weigh-ins and habit history stored by an older version of this app.</p><button class="secondary-button" data-act="importLegacy">Import legacy backup</button></div>
@@ -956,7 +958,11 @@ document.addEventListener("click", async (e) => {
   }
   else if (act === "importLegacy") { await importLegacyData(); return; }
   else if (act === "togglePush") { await togglePush(); return; }
-  else if (act === "signOut") { await signOut(); return; }
+  else if (act === "signOut") {
+    const isGuest = Boolean(AUTH.user?.is_anonymous || !AUTH.user?.email);
+    if (isGuest && !window.confirm("Sign out of this guest account? Its progress cannot be recovered.")) return;
+    await signOut(); return;
+  }
   else return;
   render();
 });

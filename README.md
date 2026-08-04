@@ -37,12 +37,12 @@ Fitness-Tracker-App/
 ## ▶️ Run it locally
 
 1. **Set up Supabase** — follow [docs/REFERENCE.md §6](docs/REFERENCE.md#6-setup-runbook):
-   create a free project, run `supabase/schema.sql`, enable magic-link email auth, and paste
+   create a free project, run `supabase/schema.sql`, enable anonymous and magic-link email auth, and paste
    your project URL + anon key into `js/config.js`.
 2. Serve the folder over `http(s)` (not `file://` — Supabase auth redirects and the service
    worker both need a real origin). Easiest options: the VS Code "Live Server" extension, or
    `npx serve .`.
-3. Open it, sign in with your email, and complete the ~60-second onboarding.
+3. Open it, continue as a guest or sign in with email, and complete the ~60-second onboarding.
 
 Push notifications are optional and need one extra step (VAPID keys + deploying the Edge
 Function) — see the runbook. Everything else works without it.

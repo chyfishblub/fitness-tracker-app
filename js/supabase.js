@@ -27,6 +27,10 @@ async function sendMagicLink(email) {
   });
   return { error };
 }
+async function signInAsGuest() {
+  const { data, error } = await sb.auth.signInAnonymously();
+  return { session: data?.session || null, error };
+}
 async function signOut() {
   await sb.auth.signOut();
 }

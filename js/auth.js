@@ -40,15 +40,38 @@ function renderLoginScreen(errorMsg) {
         <div class="auth-benefits"><span>✓ Photo-first meal journal</span><span>✓ Weight × reps workout logging</span><span>✓ Goal-based daily plan</span></div>
       </section>
       <section class="auth-card">
-        <span class="auth-kicker">WELCOME BACK</span><h2>Sign in to your plan</h2>
+        <span class="auth-kicker">START NOW</span><h2>Jump straight into your plan</h2>
+        <button id="guestSubmit" class="btn3d primary-button guest-button" style="--sd:var(--green-d)">Continue as guest <span aria-hidden="true">→</span></button>
+        <p class="guest-note">No email needed. Guest progress is tied to this browser.</p>
+        <div class="auth-divider"><span>or save across devices</span></div>
         <label for="loginEmail">Email address</label>
         <input id="loginEmail" type="email" placeholder="you@example.com" autocomplete="email"/>
-        <button id="loginSubmit" class="btn3d primary-button" style="--sd:var(--green-d)">Email me a sign-in link</button>
+        <button id="loginSubmit" class="secondary-button email-signin-button">Email me a sign-in link</button>
         <div id="loginMsg" class="form-message">
           ${errorMsg ? `<span style="color:var(--red)">${errorMsg}</span>` : "No password needed — we'll email you a sign-in link."}
         </div>
       </section>
     </div>`;
+
+  document.getElementById("guestSubmit").addEventListener("click", async () => {
+    const button = document.getElementById("guestSubmit");
+    const msg = document.getElementById("loginMsg");
+    button.disabled = true;
+    button.textContent = "Starting your plan…";
+    msg.style.color = "var(--grey)";
+    msg.textContent = "Creating your private guest space…";
+    const { error } = await signInAsGuest();
+    if (error) {
+      button.disabled = false;
+      button.innerHTML = 'Continue as guest <span aria-hidden="true">→</span>';
+      msg.style.color = "var(--red)";
+      msg.textContent = /anonymous sign-ins are disabled/i.test(error.message)
+        ? "Guest access isn't enabled yet. Please try email sign-in."
+        : error.message;
+      return;
+    }
+    await boot();
+  });
 
   document.getElementById("loginSubmit").addEventListener("click", async () => {
     const email = document.getElementById("loginEmail").value.trim();

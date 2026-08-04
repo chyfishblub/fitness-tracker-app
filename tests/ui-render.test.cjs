@@ -81,7 +81,7 @@ async function testAuthScreens() {
     console, Date, setTimeout, clearTimeout,
     document: { getElementById: (id) => id === "app" ? appNode : inertNode(), querySelectorAll: () => [] },
     getSession: async () => null, getProfile: async () => ({}), onAuthChange() {},
-    sendMagicLink: async () => ({}), completeOnboarding: async () => {}, createGoal: async () => {},
+    sendMagicLink: async () => ({}), signInAsGuest: async () => ({}), completeOnboarding: async () => {}, createGoal: async () => {},
     upsertWeightEntry: async () => {}, initApp() {},
   };
   vm.createContext(context);
@@ -89,6 +89,9 @@ async function testAuthScreens() {
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.match(appNode.innerHTML, /Know what to do/);
   assert.match(appNode.innerHTML, /Photo-first meal journal/);
+  assert.match(appNode.innerHTML, /Continue as guest/);
+  assert.match(appNode.innerHTML, /tied to this browser/);
+  assert.match(appNode.innerHTML, /save across devices/);
   vm.runInContext(`renderOnboarding({ id: "user-1" }, { display_name: "" })`, context);
   assert.match(appNode.innerHTML, /1 of 3/);
   assert.match(appNode.innerHTML, /Start with where you are/);
