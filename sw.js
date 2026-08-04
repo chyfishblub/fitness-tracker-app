@@ -7,7 +7,7 @@
    files, so the browser knows to refresh its cached copies.
    ============================================================ */
 
-const CACHE_NAME = "fitness-tracker-v8";
+const CACHE_NAME = "fitness-tracker-v9";
 const CORE_FILES = [
   "./",
   "./index.html",
@@ -41,12 +41,20 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Fetch: serve the app shell from cache first, fall back to network.
-// Supabase API/storage calls aren't in CORE_FILES so they always hit the network.
+// Fetch: same-origin app files are network-first so deployed fixes arrive
+// immediately. The cache remains an offline fallback. Supabase calls are
+// cross-origin and pass through untouched.
 self.addEventListener("fetch", (event) => {
-  event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
-  );
+  if (event.request.method !== "GET") return;
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
+  event.respondWith(fetch(event.request).then((response) => {
+    if (response.ok) {
+      const copy = response.clone();
+      event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)));
+    }
+    return response;
+  }).catch(() => caches.match(event.request)));
 });
 
 // Push: show a notification for the meal window the Edge Function is nudging about.

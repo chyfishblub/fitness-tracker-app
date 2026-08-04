@@ -92,16 +92,28 @@ async function testSignedInApp() {
 
 async function testMealPersistence() {
   const calls = [];
+  const state = { duplicateNext: false };
   const context = {
     console, Date,
     SUPABASE_URL: "https://example.supabase.co", SUPABASE_ANON_KEY: "public-key",
     window: { supabase: { createClient: () => ({
       from(table) {
         return {
-          insert(payload) { calls.push({ op: "insert", table, payload }); return Promise.resolve({ error: null }); },
+          insert(payload) {
+            calls.push({ op: "insert", table, payload });
+            if (state.duplicateNext) { state.duplicateNext = false; return Promise.resolve({ error: { code: "23505" } }); }
+            return Promise.resolve({ error: null });
+          },
           update(payload) {
             calls.push({ op: "update", table, payload });
             const query = { eq(column, value) { calls.push({ op: "eq", column, value }); return query; }, then(resolve) { resolve({ error: null }); } };
+            return query;
+          },
+          select() {
+            const query = {
+              eq(column, value) { calls.push({ op: "lookup-eq", column, value }); return query; },
+              maybeSingle() { calls.push({ op: "lookup" }); return Promise.resolve({ data: { id: "existing-meal" }, error: null }); },
+            };
             return query;
           },
         };
@@ -112,9 +124,19 @@ async function testMealPersistence() {
   vm.runInContext(fs.readFileSync("js/supabase.js", "utf8"), context, { filename: "js/supabase.js" });
   await vm.runInContext(`upsertMealLog("user-1", { logDate:"2026-08-04", mealType:"breakfast", photoPath:null, note:"Eggs", portion:"normal", feeling:null })`, context);
   await vm.runInContext(`upsertMealLog("user-1", { logId:"meal-1", logDate:"2026-08-04", mealType:"breakfast", photoPath:null, note:"Eggs and toast", portion:"normal", feeling:null })`, context);
-  assert.equal(calls.filter((call) => call.op === "insert").length, 1, "new meals are inserted without invalid onConflict upsert");
-  assert.equal(calls.filter((call) => call.op === "update").length, 1, "existing meals are updated by id");
+  state.duplicateNext = true;
+  await vm.runInContext(`upsertMealLog("user-1", { logDate:"2026-08-04", mealType:"breakfast", photoPath:null, note:"Recovered stale row", portion:"light", feeling:null })`, context);
+  assert.equal(calls.filter((call) => call.op === "insert").length, 2, "new meals are inserted without invalid onConflict upsert");
+  assert.equal(calls.filter((call) => call.op === "update").length, 2, "existing and stale duplicate meals are updated by id");
   assert.ok(calls.some((call) => call.op === "eq" && call.column === "id" && call.value === "meal-1"));
+  assert.ok(calls.some((call) => call.op === "eq" && call.column === "id" && call.value === "existing-meal"));
+  assert.ok(calls.some((call) => call.op === "lookup"), "duplicate named meals recover through an explicit lookup");
+
+  const sw = fs.readFileSync("sw.js", "utf8");
+  const html = fs.readFileSync("index.html", "utf8");
+  assert.match(sw, /fitness-tracker-v9/);
+  assert.match(sw, /fetch\(event\.request\)[\s\S]*caches\.match\(event\.request\)/, "service worker uses network-first app assets");
+  assert.match(html, /updateViaCache:\s*"none"/);
 }
 
 async function testAuthScreens() {

@@ -456,6 +456,7 @@ function closeMealSheet() { ui.mealSheet = null; render(); }
 
 async function saveMealSheet() {
   const s = ui.mealSheet; if (!s || s.saving) return;
+  let saveStage = "photo";
   s.saving = true; render();
   try {
     const today = todayStr();
@@ -463,6 +464,7 @@ async function saveMealSheet() {
     if (s.photoBlob) photoPath = await uploadMealPhoto(AUTH.user.id, today, s.type, s.photoBlob);
     else if (s.photoRemoved) photoPath = null;
 
+    saveStage = "entry";
     const note = document.getElementById("mealNoteInput") ? document.getElementById("mealNoteInput").value : (s.noteDraft || "");
     await upsertMealLog(AUTH.user.id, {
       logId: s.log ? s.log.id : null, logDate: today, mealType: s.type, photoPath,
@@ -470,11 +472,14 @@ async function saveMealSheet() {
       portion: s.portion !== undefined ? s.portion : (s.log ? s.log.portion : null),
       feeling: s.feeling !== undefined ? s.feeling : (s.log ? s.log.feeling : null),
     });
+    saveStage = "refresh";
     DB.mealLogs = await getMealLogsForDate(AUTH.user.id, today);
     ui.mealSheet = null;
   } catch (e) {
-    console.error("Meal entry save failed", e);
-    showToast("Couldn't save that entry. Check your connection and try again.", "is-error");
+    console.error(`Meal ${saveStage} failed`, e);
+    const code = e && (e.code || e.statusCode || e.status);
+    const action = saveStage === "photo" ? "upload the photo" : saveStage === "refresh" ? "refresh your meals" : "save the entry";
+    showToast(`Couldn't ${action}.${code ? ` Error ${code}.` : ""} Please try again.`, "is-error");
     s.saving = false;
   }
   render();

@@ -99,11 +99,29 @@ async function upsertMealLog(userId, { logId, logDate, mealType, photoPath, note
   };
   // Named meals are protected by a partial unique index. PostgREST cannot target
   // that index with onConflict, so existing rows must be updated by id instead.
-  const query = logId
-    ? sb.from("meal_logs").update(payload).eq("id", logId).eq("user_id", userId)
-    : sb.from("meal_logs").insert(payload);
-  const { error } = await query;
-  if (error) throw error;
+  if (logId) {
+    const { error } = await sb.from("meal_logs").update(payload).eq("id", logId).eq("user_id", userId);
+    if (error) throw error;
+    return;
+  }
+
+  const { error } = await sb.from("meal_logs").insert(payload);
+  if (!error) return;
+
+  // A stale client can miss a row created in another tab/session. Recover from
+  // the unique violation by locating and updating that named meal explicitly.
+  if (error.code === "23505" && mealType !== "snack") {
+    const { data: existing, error: lookupError } = await sb.from("meal_logs")
+      .select("id").eq("user_id", userId).eq("log_date", logDate).eq("meal_type", mealType).maybeSingle();
+    if (lookupError) throw lookupError;
+    if (existing) {
+      const { error: updateError } = await sb.from("meal_logs").update(payload)
+        .eq("id", existing.id).eq("user_id", userId);
+      if (updateError) throw updateError;
+      return;
+    }
+  }
+  throw error;
 }
 async function deleteMealLog(logId) {
   const { error } = await sb.from("meal_logs").delete().eq("id", logId);

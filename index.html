@@ -35,7 +35,17 @@
   <script>
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("sw.js").catch(err => console.log("SW registration skipped:", err));
+        let refreshing = false;
+        if (navigator.serviceWorker.controller) {
+          navigator.serviceWorker.addEventListener("controllerchange", () => {
+            if (refreshing) return;
+            refreshing = true;
+            window.location.reload();
+          });
+        }
+        navigator.serviceWorker.register("sw.js", { updateViaCache: "none" })
+          .then((registration) => registration.update())
+          .catch(err => console.log("SW registration skipped:", err));
       });
     }
   </script>

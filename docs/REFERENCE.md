@@ -177,7 +177,10 @@ the import is skipped.
   partial `meal_logs_one_per_day` index with explicit insert/update-by-id behavior. Live
   reproduction returned PostgreSQL `42P10`; the corrected create, update, range query, and
   cleanup sequence all passed against Supabase.
-- Added render and persistence regression checks and bumped the installed-app cache to `v8`.
+- Follow-up hardening recovers when a stale client misses an existing named meal, reports
+  whether a failure occurred during photo upload, entry save, or refresh, and changes the
+  service worker to network-first app assets with automatic controller refresh.
+- Added render and persistence regression checks and bumped the installed-app cache to `v9`.
 
 ### 2026-08-04 — Guest sign-in
 - Added one-tap anonymous Supabase sign-in as the primary entry path, avoiding email delivery
