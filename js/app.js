@@ -11,6 +11,7 @@ const AUTH = { user: null, profile: null };
 const DB = {
   goal: null, plan: null,
   overrides: [], mealLogs: [], setLogs: [], weightEntries: [],
+  mealHistoryLogs: [],
   weekNotes: {}, habitLogs: {}, habitWeeksLoaded: new Set(),
   photoUrls: {}, pendingPhotoFetches: new Set(),
   lastSetCache: {}, pendingLastSetFetches: new Set(),
@@ -27,8 +28,12 @@ const LEGACY_TAB_MAP = { meals: "plan", guide: "plan", habits: "progress" };
 if (LEGACY_TAB_MAP[ui.activeTab]) ui.activeTab = LEGACY_TAB_MAP[ui.activeTab];
 if (!ui.planSection) ui.planSection = "meals";
 if (ui.workoutBrowse == null) ui.workoutBrowse = false;
+if (!ui.mealHistoryMonth) ui.mealHistoryMonth = todayStr().slice(0, 7);
+if (!ui.mealHistorySelectedDate) ui.mealHistorySelectedDate = todayStr();
+if (ui.mealHistoryLoading == null) ui.mealHistoryLoading = false;
 function saveUi() {
-  try { localStorage.setItem(UI_KEY, JSON.stringify({ activeTab: ui.activeTab, selectedWeek: ui.selectedWeek, selectedDay: ui.selectedDay, planSection: ui.planSection })); } catch (e) {}
+  const savedTab = ui.activeTab === "mealHistory" ? "dashboard" : ui.activeTab;
+  try { localStorage.setItem(UI_KEY, JSON.stringify({ activeTab: savedTab, selectedWeek: ui.selectedWeek, selectedDay: ui.selectedDay, planSection: ui.planSection })); } catch (e) {}
 }
 
 // ---------- date helpers ----------
@@ -219,7 +224,7 @@ function mealJournalCard(today) {
   const rotations = [-90, 30, 150];
 
   let h = `<section class="card home-card meal-card ${loggedCount === 3 ? "all-complete" : ""}">
-    <div class="home-section-heading"><div><div class="home-eyebrow">TODAY'S MEALS</div><div class="home-section-title">Log what you eat</div></div><span class="home-count-badge">${loggedCount}/3</span></div>
+    <div class="home-section-heading"><div><div class="home-eyebrow">TODAY'S MEALS</div><div class="home-section-title">Log what you eat</div></div><div class="meal-heading-actions"><button class="meal-history-link" data-act="openMealHistory">History</button><span class="home-count-badge">${loggedCount}/3</span></div></div>
     <div class="meal-ring-wrap">
       <svg class="meal-ring" viewBox="0 0 160 160" role="img" aria-label="${loggedCount} of 3 meals logged">
         <circle class="meal-ring-base" cx="80" cy="80" r="61" pathLength="100" stroke-dasharray="29 4.333" transform="rotate(-90 80 80)"></circle>
@@ -262,6 +267,98 @@ function mealThumb(log, fallbackIcon) {
   const url = photoUrlFor(log.photo_path);
   if (!url) return `<span class="meal-thumb"></span>`;
   return `<img src="${url}" class="meal-thumb" alt=""/>`;
+}
+
+// ---------- Meal history ----------
+function mealMonthBounds(monthKey) {
+  const [year, month] = monthKey.split("-").map(Number);
+  const days = new Date(year, month, 0).getDate();
+  return { start: `${monthKey}-01`, end: `${monthKey}-${String(days).padStart(2, "0")}`, year, month, days };
+}
+function shiftMealMonth(monthKey, amount) {
+  const [year, month] = monthKey.split("-").map(Number);
+  const d = new Date(year, month - 1 + amount, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+async function loadMealHistoryMonth(monthKey) {
+  ui.activeTab = "mealHistory";
+  ui.mealHistoryMonth = monthKey;
+  ui.mealHistoryLoading = true;
+  ui.mealHistoryError = "";
+  render();
+  try {
+    const bounds = mealMonthBounds(monthKey);
+    DB.mealHistoryLogs = await getMealLogsForRange(AUTH.user.id, bounds.start, bounds.end);
+    const currentSelectionIsVisible = ui.mealHistorySelectedDate.startsWith(`${monthKey}-`);
+    if (!currentSelectionIsVisible) {
+      ui.mealHistorySelectedDate = DB.mealHistoryLogs.length ? DB.mealHistoryLogs[0].log_date : bounds.start;
+    }
+  } catch (e) {
+    console.error("Meal history load failed", e);
+    DB.mealHistoryLogs = [];
+    ui.mealHistoryError = "We couldn't load this month's meals. Try again.";
+  }
+  ui.mealHistoryLoading = false;
+  render();
+}
+function mealHistoryPhoto(log, fallbackIcon) {
+  if (!log || !log.photo_path) return `<span class="history-photo-fallback">${fallbackIcon}</span>`;
+  const url = photoUrlFor(log.photo_path);
+  return url ? `<img src="${url}" alt=""/>` : `<span class="history-photo-fallback is-loading"></span>`;
+}
+function mealHistoryTab() {
+  const bounds = mealMonthBounds(ui.mealHistoryMonth);
+  const monthDate = new Date(bounds.year, bounds.month - 1, 1);
+  const monthLabel = monthDate.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+  const firstWeekday = monthDate.getDay();
+  const byDate = {};
+  DB.mealHistoryLogs.forEach((log) => { (byDate[log.log_date] ||= []).push(log); });
+  const selectedDate = ui.mealHistorySelectedDate;
+  const selectedLogs = byDate[selectedDate] || [];
+  const monthTotal = DB.mealHistoryLogs.length;
+  const mealMeta = {
+    breakfast: ["🍳", "Breakfast"], lunch: ["🍚", "Lunch"],
+    dinner: ["🍽️", "Dinner"], snack: ["🍎", "Snack or drink"],
+  };
+
+  let calendar = '<div class="meal-calendar-weekdays">' + ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => `<span>${day}</span>`).join("") + '</div><div class="meal-calendar-grid">';
+  for (let i = 0; i < firstWeekday; i++) calendar += '<span class="meal-calendar-spacer"></span>';
+  for (let day = 1; day <= bounds.days; day++) {
+    const date = `${ui.mealHistoryMonth}-${String(day).padStart(2, "0")}`;
+    const logs = byDate[date] || [];
+    const first = logs[0];
+    const icon = first ? mealMeta[first.meal_type][0] : "";
+    calendar += `<button class="meal-calendar-day ${logs.length ? "has-meals" : ""} ${selectedDate === date ? "is-selected" : ""}" data-act="selectMealHistoryDay" data-date="${date}" aria-label="${fmtDate(date)}${logs.length ? `, ${logs.length} meal${logs.length === 1 ? "" : "s"} logged` : ", no meals logged"}">
+      <span class="meal-calendar-number">${day}</span>
+      ${logs.length ? `<span class="meal-calendar-visual">${mealHistoryPhoto(first, icon)}${logs.length > 1 ? `<b>${logs.length}</b>` : ""}</span>` : '<span class="meal-calendar-dot"></span>'}
+    </button>`;
+  }
+  calendar += "</div>";
+
+  let details = `<section class="history-day-section"><div class="history-day-heading"><div><span>SELECTED DAY</span><h2>${fmtDate(selectedDate)}</h2></div><strong>${selectedLogs.length} ${selectedLogs.length === 1 ? "entry" : "entries"}</strong></div>`;
+  if (!selectedLogs.length) {
+    details += '<div class="history-empty"><div>🍽️</div><h3>Nothing logged here</h3><p>Select a day with a photo or count badge to revisit what you ate.</p></div>';
+  } else {
+    details += '<div class="history-meal-list">';
+    selectedLogs.forEach((log) => {
+      const [icon, label] = mealMeta[log.meal_type] || ["🍴", "Meal"];
+      const time = new Date(log.logged_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+      const tags = [log.portion ? `${log.portion} portion` : "", log.feeling || ""].filter(Boolean);
+      details += `<article class="history-meal-row"><div class="history-meal-photo">${mealHistoryPhoto(log, icon)}</div><div class="history-meal-copy"><div><span>${label}</span><time>${time}</time></div><h3>${escapeHtml(log.note || "No note added")}</h3>${tags.length ? `<p>${escapeHtml(tags.join(" · "))}</p>` : ""}</div></article>`;
+    });
+    details += "</div>";
+  }
+  details += "</section>";
+
+  return `<div class="meal-history-screen">
+    <header class="meal-history-header"><button data-act="closeMealHistory" aria-label="Back to Home">‹</button><div><span>MEAL HISTORY</span><h1>Your food journal</h1></div><i aria-hidden="true">◷</i></header>
+    <section class="meal-history-summary"><div><strong>${monthTotal}</strong><span>entries this month</span></div><p>A visual memory of what you ate—no calorie counting required.</p></section>
+    <section class="meal-calendar-card">
+      <div class="meal-month-nav"><button data-act="changeMealHistoryMonth" data-v="-1" aria-label="Previous month">‹</button><h2>${monthLabel}</h2><button data-act="changeMealHistoryMonth" data-v="1" aria-label="Next month">›</button></div>
+      ${ui.mealHistoryLoading ? '<div class="history-loading">Loading your meals…</div>' : ui.mealHistoryError ? `<div class="history-error">${escapeHtml(ui.mealHistoryError)}</div>` : calendar}
+    </section>
+    ${ui.mealHistoryLoading ? "" : details}
+  </div>`;
 }
 
 function dailyGoalsCard(today) {
@@ -368,7 +465,7 @@ async function saveMealSheet() {
 
     const note = document.getElementById("mealNoteInput") ? document.getElementById("mealNoteInput").value : (s.noteDraft || "");
     await upsertMealLog(AUTH.user.id, {
-      logDate: today, mealType: s.type, photoPath,
+      logId: s.log ? s.log.id : null, logDate: today, mealType: s.type, photoPath,
       note: note || null,
       portion: s.portion !== undefined ? s.portion : (s.log ? s.log.portion : null),
       feeling: s.feeling !== undefined ? s.feeling : (s.log ? s.log.feeling : null),
@@ -376,6 +473,7 @@ async function saveMealSheet() {
     DB.mealLogs = await getMealLogsForDate(AUTH.user.id, today);
     ui.mealSheet = null;
   } catch (e) {
+    console.error("Meal entry save failed", e);
     showToast("Couldn't save that entry. Check your connection and try again.", "is-error");
     s.saving = false;
   }
@@ -846,16 +944,17 @@ function urlBase64ToUint8Array(base64String) {
 function render() {
   if (!DB.goal) return;
   const tabs = [["dashboard", "Today"], ["workout", "Train"], ["plan", "Plan"], ["progress", "Progress"], ["profile", "Me"]];
-  if (!tabs.some((t) => t[0] === ui.activeTab)) ui.activeTab = "dashboard";
+  if (!tabs.some((t) => t[0] === ui.activeTab) && ui.activeTab !== "mealHistory") ui.activeTab = "dashboard";
   let nav = '<nav class="bottom-nav" aria-label="Primary navigation">';
   tabs.forEach((t) => {
-    const a = ui.activeTab === t[0];
+    const a = ui.activeTab === t[0] || (ui.activeTab === "mealHistory" && t[0] === "dashboard");
     nav += `<button data-act="tab" data-v="${t[0]}" class="${a ? "is-active" : ""}" aria-current="${a ? "page" : "false"}">${navIcon(t[0])}<span>${t[1]}</span></button>`;
   });
   nav += "</nav>";
 
   let body = "";
   if (ui.activeTab === "dashboard") body = dashboard();
+  else if (ui.activeTab === "mealHistory") body = mealHistoryTab();
   else if (ui.activeTab === "workout") body = workoutTab();
   else if (ui.activeTab === "plan") body = planTab();
   else if (ui.activeTab === "progress") body = progressTab();
@@ -894,6 +993,13 @@ document.addEventListener("click", async (e) => {
     ui.workoutBrowse = false;
     ui.exerciseMenu = null;
   }
+  else if (act === "openMealHistory") { await loadMealHistoryMonth(todayStr().slice(0, 7)); return; }
+  else if (act === "closeMealHistory") { ui.activeTab = "dashboard"; render(); return; }
+  else if (act === "changeMealHistoryMonth") {
+    await loadMealHistoryMonth(shiftMealMonth(ui.mealHistoryMonth, parseInt(btn.dataset.v, 10)));
+    return;
+  }
+  else if (act === "selectMealHistoryDay") { ui.mealHistorySelectedDate = btn.dataset.date; }
   else if (act === "week") { ui.selectedWeek = parseInt(btn.dataset.v, 10); ui.selectedDay = 0; ui.progressDay = null; }
   else if (act === "day") { ui.selectedDay = parseInt(btn.dataset.v, 10); }
   else if (act === "planSection") { ui.planSection = btn.dataset.v; }

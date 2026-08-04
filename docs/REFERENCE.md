@@ -168,6 +168,17 @@ the import is skipped.
 
 ## Changelog
 
+### 2026-08-04 — Meal history and meal-save repair
+- Added a Home → History entry point and a responsive monthly meal calendar with photo/count
+  markers, previous/next month navigation, and selected-day journal details.
+- Kept logged meals intentionally free of calorie estimates while preserving the existing
+  photo, note, portion, feeling, and time metadata for later nutrition features.
+- Fixed breakfast/lunch/dinner saves by replacing an invalid PostgREST upsert against the
+  partial `meal_logs_one_per_day` index with explicit insert/update-by-id behavior. Live
+  reproduction returned PostgreSQL `42P10`; the corrected create, update, range query, and
+  cleanup sequence all passed against Supabase.
+- Added render and persistence regression checks and bumped the installed-app cache to `v8`.
+
 ### 2026-08-04 — Guest sign-in
 - Added one-tap anonymous Supabase sign-in as the primary entry path, avoiding email delivery
   limits while preserving the existing email magic-link option for cross-device access.

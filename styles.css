@@ -85,6 +85,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   color: var(--green-d); font-size: 12px; font-weight: 900; text-align: center;
 }
 .home-count-badge.is-orange { background: #FFF1DF; color: var(--orange-d); }
+.meal-heading-actions { display:flex; align-items:center; gap:7px; }
+.meal-history-link {
+  min-height:34px; padding:7px 10px; border:1px solid #CFE4C5; border-radius:11px;
+  background:#F4FAF0; color:var(--green-d); font-family:inherit; font-size:10px; font-weight:900; cursor:pointer;
+}
 
 .meal-card { background: linear-gradient(180deg, #FFFFFF 0%, #FCFFFA 100%); }
 .meal-ring-wrap { position: relative; width: 174px; height: 174px; margin: 8px auto 2px; }
@@ -140,6 +145,76 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   background: #FCF8FF; color: var(--purple-d); font-family: inherit; font-size: 11px; font-weight: 900; cursor: pointer;
 }
 .add-snack-button span { font-size: 16px; line-height: 1; }
+
+/* Meal history */
+.meal-history-screen { display:flex; flex-direction:column; gap:16px; }
+.meal-history-header { display:grid; grid-template-columns:42px 1fr 42px; align-items:center; gap:10px; }
+.meal-history-header button {
+  display:grid; place-items:center; width:42px; height:42px; border:1px solid var(--line); border-radius:14px;
+  background:#fff; color:var(--ink); font-family:inherit; font-size:30px; font-weight:800; line-height:1; cursor:pointer;
+}
+.meal-history-header > div { text-align:center; }
+.meal-history-header span { color:var(--green-d); font-size:9px; font-weight:900; letter-spacing:1.3px; }
+.meal-history-header h1 { margin-top:2px; color:var(--ink); font-size:22px; font-weight:900; line-height:1.1; }
+.meal-history-header i { display:grid; place-items:center; width:42px; height:42px; color:var(--green-d); font-size:24px; font-style:normal; }
+.meal-history-summary {
+  display:grid; grid-template-columns:auto 1fr; align-items:center; gap:14px; padding:15px 16px; border-radius:18px;
+  background:linear-gradient(135deg,#233A2A,#355E3B); color:#fff; box-shadow:0 4px 0 rgba(18,37,23,.17);
+}
+.meal-history-summary > div { min-width:75px; text-align:center; }
+.meal-history-summary strong { display:block; font-size:27px; font-weight:900; line-height:1; }
+.meal-history-summary span { display:block; margin-top:4px; color:#C9E6BF; font-size:9px; font-weight:900; text-transform:uppercase; }
+.meal-history-summary p { padding-left:14px; border-left:1px solid rgba(255,255,255,.22); font-size:11px; font-weight:700; line-height:1.4; }
+.meal-calendar-card { padding:16px 12px 14px; border:1px solid var(--line); border-radius:21px; background:#fff; box-shadow:0 3px 0 var(--line); }
+.meal-month-nav { display:grid; grid-template-columns:38px 1fr 38px; align-items:center; margin-bottom:15px; }
+.meal-month-nav h2 { color:var(--ink); font-size:18px; font-weight:900; text-align:center; }
+.meal-month-nav button {
+  display:grid; place-items:center; width:36px; height:36px; border:0; border-radius:12px;
+  background:var(--soft); color:var(--ink); font-family:inherit; font-size:24px; font-weight:900; cursor:pointer;
+}
+.meal-calendar-weekdays, .meal-calendar-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); }
+.meal-calendar-weekdays { margin-bottom:4px; }
+.meal-calendar-weekdays span { color:var(--grey); font-size:9px; font-weight:900; text-align:center; }
+.meal-calendar-grid { row-gap:5px; }
+.meal-calendar-day {
+  position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:3px;
+  min-width:0; min-height:57px; padding:4px 1px; border:2px solid transparent; border-radius:13px;
+  background:transparent; color:var(--grey); font-family:inherit; cursor:pointer;
+}
+.meal-calendar-day.is-selected { border-color:var(--green); background:#F2FAED; }
+.meal-calendar-day.has-meals { color:var(--ink); }
+.meal-calendar-number { font-size:10px; font-weight:900; line-height:1; }
+.meal-calendar-visual { position:relative; display:grid; place-items:center; width:31px; height:31px; overflow:visible; border-radius:11px; background:#EAF4E5; }
+.meal-calendar-visual img, .history-meal-photo img { width:100%; height:100%; border-radius:inherit; object-fit:cover; }
+.history-photo-fallback { display:grid; place-items:center; width:100%; height:100%; font-size:16px; }
+.history-photo-fallback.is-loading { background:linear-gradient(110deg,#EDF1EA 30%,#F8FAF7 50%,#EDF1EA 70%); background-size:200% 100%; animation:history-shimmer 1.2s linear infinite; }
+@keyframes history-shimmer { to { background-position:-200% 0; } }
+.meal-calendar-visual b {
+  position:absolute; right:-5px; bottom:-4px; display:grid; place-items:center; width:17px; height:17px;
+  border:2px solid #fff; border-radius:7px; background:var(--green); color:#fff; font-size:8px; font-weight:900;
+}
+.meal-calendar-dot { width:4px; height:4px; margin-top:12px; border-radius:50%; background:var(--line); }
+.history-loading, .history-error { display:grid; place-items:center; min-height:310px; padding:20px; color:var(--grey); font-size:13px; font-weight:800; text-align:center; }
+.history-error { color:var(--red-d); }
+.history-day-section { padding:17px; border:1px solid var(--line); border-radius:21px; background:#fff; box-shadow:0 3px 0 var(--line); }
+.history-day-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.history-day-heading span { color:var(--green-d); font-size:9px; font-weight:900; letter-spacing:1.1px; }
+.history-day-heading h2 { margin-top:2px; font-size:18px; font-weight:900; }
+.history-day-heading > strong { padding:6px 8px; border-radius:10px; background:#EBF8E2; color:var(--green-d); font-size:10px; font-weight:900; }
+.history-empty { padding:26px 12px 12px; text-align:center; }
+.history-empty > div { font-size:28px; }
+.history-empty h3 { margin-top:7px; font-size:15px; font-weight:900; }
+.history-empty p { margin:5px auto 0; max-width:260px; color:var(--grey); font-size:11px; line-height:1.45; }
+.history-meal-list { display:flex; flex-direction:column; gap:9px; margin-top:14px; }
+.history-meal-row { display:grid; grid-template-columns:58px 1fr; align-items:center; gap:11px; padding:9px; border:1px solid var(--line); border-radius:16px; background:#FBFCFA; }
+.history-meal-photo { display:grid; place-items:center; width:58px; height:58px; overflow:hidden; border-radius:14px; background:var(--soft); }
+.history-meal-photo .history-photo-fallback { font-size:24px; }
+.history-meal-copy { min-width:0; }
+.history-meal-copy > div { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.history-meal-copy span { color:var(--green-d); font-size:9px; font-weight:900; text-transform:uppercase; }
+.history-meal-copy time { color:var(--grey); font-size:9px; font-weight:800; }
+.history-meal-copy h3 { margin-top:4px; overflow:hidden; text-overflow:ellipsis; font-size:13px; font-weight:900; line-height:1.25; }
+.history-meal-copy p { margin-top:4px; color:var(--grey); font-size:10px; font-weight:700; text-transform:capitalize; }
 
 .daily-goals-card { background: linear-gradient(180deg, #FFFFFF 0%, #FFFCF7 100%); }
 .goal-progress { height: 9px; margin: 13px 0; overflow: hidden; border-radius: 99px; background: #F2EEE9; }
@@ -198,6 +273,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   .meal-ring-wrap { width: 158px; height: 158px; }
   .daily-goal-grid { grid-template-columns: 1fr; }
   .workout-goal { grid-column: auto; }
+  .meal-calendar-card { padding-left:8px; padding-right:8px; }
+  .meal-calendar-day { min-height:53px; }
+  .meal-calendar-visual { width:28px; height:28px; }
+  .meal-history-summary { grid-template-columns:1fr; text-align:center; }
+  .meal-history-summary p { padding:10px 0 0; border-top:1px solid rgba(255,255,255,.22); border-left:0; }
 }
 
 /* Unified app shell */

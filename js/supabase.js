@@ -84,19 +84,25 @@ async function getMealLogsForDate(userId, logDate) {
   if (error) throw error;
   return data;
 }
-async function upsertMealLog(userId, { logDate, mealType, photoPath, note, portion, feeling }) {
-  if (mealType === "snack") {
-    const { error } = await sb.from("meal_logs").insert({
-      user_id: userId, log_date: logDate, meal_type: mealType,
-      photo_path: photoPath, note, portion, feeling,
-    });
-    if (error) throw error;
-    return;
-  }
-  const { error } = await sb.from("meal_logs").upsert({
+async function getMealLogsForRange(userId, startDate, endDate) {
+  const { data, error } = await sb.from("meal_logs")
+    .select("*").eq("user_id", userId)
+    .gte("log_date", startDate).lte("log_date", endDate)
+    .order("log_date", { ascending: false }).order("logged_at", { ascending: true });
+  if (error) throw error;
+  return data;
+}
+async function upsertMealLog(userId, { logId, logDate, mealType, photoPath, note, portion, feeling }) {
+  const payload = {
     user_id: userId, log_date: logDate, meal_type: mealType,
     photo_path: photoPath, note, portion, feeling, logged_at: new Date().toISOString(),
-  }, { onConflict: "user_id,log_date,meal_type" });
+  };
+  // Named meals are protected by a partial unique index. PostgREST cannot target
+  // that index with onConflict, so existing rows must be updated by id instead.
+  const query = logId
+    ? sb.from("meal_logs").update(payload).eq("id", logId).eq("user_id", userId)
+    : sb.from("meal_logs").insert(payload);
+  const { error } = await query;
   if (error) throw error;
 }
 async function deleteMealLog(logId) {

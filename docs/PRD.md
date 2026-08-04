@@ -99,6 +99,8 @@ Fish wants:
   low-friction journal, not a chore.
 - Re-logging the same meal on the same day edits the existing entry (breakfast/lunch/dinner
   are one-per-day). Snacks are unlimited and freeform ("＋ Add snack").
+- History opens from the Home meal card into a month calendar. Logged days show a photo or
+  count marker; selecting a day reveals its meal notes, portions, feelings, and timestamps.
 - Photos stored in Supabase Storage, private per user, served via signed URLs.
 
 ### 5.3 Simplified Home
@@ -146,7 +148,6 @@ Chrome/Android.
 - **Offline-first / full offline editing.** Online-first with Supabase; PWA install is for
   home-screen convenience and push notifications, not offline data entry.
 - **Exercise demo videos/GIFs.** Deferred to V2 — see backlog.
-- **Calendar/photo-grid journal history.** Deferred to V2.
 - **Weekly progress (physique) photos.** Deferred to V2.
 - **Social features** (sharing, following, leaderboards) — not requested, not planned.
 - **Full custom workout builder** (reordering weeks, building days from scratch) — V1 only
@@ -159,8 +160,7 @@ Roughly in the order Fish is likely to want them next:
 1. **Exercise demo clips** — short looping GIF/video per exercise so form can be checked
    in-app instead of searching YouTube. Library keyed by the same `exercise_id` used for
    swaps, so this slots in without a data model change.
-2. **Journal history** — calendar view (dot/thumbnail per day, tap for day detail) with a
-   toggle to a photo-grid gallery view.
+2. **Journal gallery** — add a photo-grid toggle to the shipped calendar/day-detail history.
 3. **Weekly progress photos** — a prompted physique check-in (e.g. every Sunday), building a
    side-by-side timeline over months.
 4. **Workout-day push reminders** and a **weekly weigh-in nudge**, layered onto the existing

@@ -82,7 +82,7 @@ weigh-ins and habit history.
 ## 🗺️ What's next
 
 The full V1 feature set, the reasoning behind every product decision, and the V2+ backlog
-(exercise demo clips, journal calendar history, weekly progress photos, AI meal analysis,
+(exercise demo clips, a meal-history gallery, weekly progress photos, AI meal analysis,
 coach/accountability) are documented in [docs/PRD.md](docs/PRD.md). Every real change to this
 app should get a line in [docs/REFERENCE.md](docs/REFERENCE.md)'s Changelog — that's what
 keeps these docs worth reading six months from now.
