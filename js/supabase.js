@@ -17,9 +17,13 @@ function onAuthChange(cb) {
   sb.auth.onAuthStateChange((_event, session) => cb(session));
 }
 async function sendMagicLink(email) {
+  // Always return to the clean page URL that initiated sign-in. Avoid carrying
+  // stale auth fragments/query strings into a newly generated magic link.
+  // This URL must also be present in Supabase Auth's Redirect URLs allowlist.
+  const emailRedirectTo = `${window.location.origin}${window.location.pathname}`;
   const { error } = await sb.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: window.location.href },
+    options: { emailRedirectTo },
   });
   return { error };
 }

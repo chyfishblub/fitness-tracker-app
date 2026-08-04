@@ -121,8 +121,10 @@ unlogged, once past dinner).
 ## 6. Setup runbook
 
 1. Create a free project at supabase.com.
-2. **Auth** → Providers → enable Email, turn on "Magic Link", add your deployed app URL
-   (e.g. `https://yourname.github.io/fitness-tracker/`) to Redirect URLs.
+2. **Auth** → Providers → enable Email and turn on "Magic Link". Then open **Auth →
+   URL Configuration**, set **Site URL** to the exact production origin, and add the
+   production URL plus `/**` to Redirect URLs. Never leave the production Site URL set to
+   `localhost`; Supabase falls back to Site URL when a requested redirect is not allowed.
 3. **SQL Editor** → run `supabase/schema.sql` in full (creates tables, RLS policies,
    indexes, storage bucket + policies).
 4. **Project Settings → API** → copy the Project URL and `anon` public key into
@@ -164,6 +166,13 @@ the import is skipped.
 ---
 
 ## Changelog
+
+### 2026-08-04 — Production magic-link redirect hardening
+- Changed magic-link callbacks to use the clean current origin + pathname instead of the
+  full browser URL, preventing stale query strings or auth fragments from being copied into
+  new login links.
+- Documented the required Supabase Site URL/Redirect URLs and Vercel Deployment Protection
+  settings. Bumped the PWA shell cache to `v4` so deployed clients receive the auth change.
 
 ### 2026-07-15 — V1 implementation
 - Built the full stack described in this doc: `supabase/schema.sql` (8 tables + RLS +

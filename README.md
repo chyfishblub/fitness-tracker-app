@@ -49,13 +49,19 @@ Function) — see the runbook. Everything else works without it.
 
 ---
 
-## 🌐 Put it online + on your phone (GitHub Pages, free)
+## 🌐 Put it online + on your phone
 
-1. Push this repo to a **public** GitHub repository.
-2. **Settings → Pages → Source: "Deploy from a branch" → Branch: `main` / root → Save.**
-3. Add the resulting `https://yourname.github.io/...` URL to your Supabase project's
-   **Auth → URL Configuration → Redirect URLs**, or magic links won't complete.
-4. **On your iPhone:** open that URL in **Safari** → **Share** → **Add to Home Screen**.
+1. Deploy the repository with Vercel or GitHub Pages. For Vercel, make sure the production
+   domain is public under **Project Settings → Deployment Protection**; dashboard and
+   protected preview URLs are not the mobile app URL.
+2. In Supabase, open **Authentication → URL Configuration**. Set **Site URL** to the exact
+   production URL (not `localhost`) and add that URL plus `/**` to **Redirect URLs**.
+   For Vercel previews, you can additionally allow
+   `https://*-<team-or-account-slug>.vercel.app/**`.
+3. Request a new magic link after changing those settings. Links generated before the
+   change still contain the old redirect destination.
+4. **On your iPhone:** open the production URL in **Safari** → **Share** →
+   **Add to Home Screen**.
    This is required for push notifications to work on iOS (16.4+).
 
 ---
