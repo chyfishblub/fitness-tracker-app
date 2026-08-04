@@ -150,8 +150,8 @@ unlogged, once past dinner).
   other exercises in the same muscle group so the swap picker is bidirectional.
 - **Add a plan template**: add a new template object to `js/data.js` following the shape of
   `lean-peak`/`consistency`; it becomes selectable when creating a goal.
-- **Add a habit**: append to `habitDefs` in `js/data.js` — Habits tab and Profile summary
-  pick it up automatically.
+- **Add a habit**: append to `habitDefs` in `js/data.js` — Today and the Progress weekly
+  editor pick it up automatically.
 - **Change meal windows**: edit `MEAL_WINDOWS`; update the Edge Function's cron schedule to
   match if you move the times materially.
 
@@ -166,6 +166,31 @@ the import is skipped.
 ---
 
 ## Changelog
+
+### 2026-08-04 — Full app design system and navigation overhaul
+- Replaced six horizontally scrolling top tabs with a persistent five-item bottom navigation:
+  Today, Train, Plan, Progress, and Me.
+- Added a compact app bar and shared typography, spacing, color, component, focus, safe-area,
+  reduced-motion, responsive, loading, toast, sheet, and empty-state treatments.
+- Rebuilt Train around a current-day hero, optional schedule browser, row-based set logging
+  with previous values, exercise overflow actions, and a sticky start/continue action.
+- Combined Eat + Guide into Plan, combined weekly Habits + body/strength charts into
+  Progress, and simplified Me to goals, reminders, account, and advanced data tools.
+- Redesigned login around the product value proposition and changed onboarding into three
+  short personalized steps with a final plan preview.
+- Used Mobbin references from Centr/Ladder (app shell), Hevy/Gymshark (set logging),
+  Cal AI/Google Fit (progress), and Equinox+ (personalization flow) to inform structure.
+- Added dependency-free UI render checks and bumped the installed-app shell cache to `v6`.
+
+### 2026-08-04 — Home dashboard redesign
+- Reordered Home around the daily flow: compact goal status, three-segment meal logger,
+  six-goal checklist, then today's workout plan.
+- Kept snacks separate from the breakfast/lunch/dinner ring and preserved the existing meal
+  sheet for logging and editing.
+- Made workout completion automatic from prescribed set logs and added a direct Home action
+  that resets the workout view to the current week/day before opening it.
+- Added responsive, Duolingo-inspired cards, progress treatments, and compact phone layouts.
+  Bumped the PWA shell cache to `v5` so installed clients receive the redesign.
 
 ### 2026-08-04 — Production magic-link redirect hardening
 - Changed magic-link callbacks to use the clean current origin + pathname instead of the

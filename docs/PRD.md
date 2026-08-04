@@ -37,8 +37,8 @@ Fish wants:
 
 ## 3. Design principles
 
-- **Home = today.** Everything on Home should answer "what do I need to do right now?" Not
-  "here's your whole program" — that's what the Workout/Eat/Guide tabs and Profile are for.
+- **Today = today.** Everything on Today should answer "what do I need to do right now?" Not
+  "here's your whole program" — that belongs in Train, Plan, Progress, and Me.
 - **Journaling over judging.** Meal logging never blocks, scores, or shames — no forced
   calorie entry. A photo and a note is a complete log.
 - **Time-aware, not time-locked.** Meal windows guide *what's highlighted*, never what's
@@ -67,7 +67,7 @@ Fish wants:
 6. **Logging a meal.** Tap the highlighted meal → bottom sheet → snap or upload a photo
    (optional), jot a quick note, pick a portion size and how it felt (optional) → save.
    Snacks/drinks any time via "＋ Add snack," unlimited per day.
-7. **Training day.** Open Workout tab → today's exercises (from the generated plan, minus
+7. **Training day.** Open Train → today's exercises (from the generated plan, minus
    any personal swaps/adjustments) → tap an exercise → log each set's weight × reps, seeing
    last session's numbers as a reference ("last time: 40kg × 10") → exercise auto-checks off
    once all sets are logged.
@@ -78,9 +78,9 @@ Fish wants:
    strength progress per lift.
 10. **New goal.** Once a goal's date passes (or Fish decides to pivot), starts a new goal —
     new title/date/weight targets — and the app regenerates a fresh plan from templates.
-11. **Profile.** Account info, sign out, notification toggle, goal editor/history, weight
-    trend, strength charts, the "what you can control" habit summary, and weekly check-in —
-    everything that isn't a daily need lives here instead of on Home.
+11. **Review progress.** Progress combines weekly habits, weigh-ins, and strength trends.
+12. **Manage the account.** Me contains the active goal, reminders, account controls, and
+    legacy import; settings no longer compete with progress charts on one long screen.
 
 ## 5. Features — V1 (this build)
 
@@ -102,8 +102,10 @@ Fish wants:
 - Photos stored in Supabase Storage, private per user, served via signed URLs.
 
 ### 5.3 Simplified Home
-Home shows, top to bottom: goal countdown → today's meal journal card → "today at a glance"
-strip (today's workout progress + habit ticks, tap to jump into that tab).
+Home shows, top to bottom: a compact active-goal/countdown line → a three-segment meal
+progress ring for breakfast/lunch/dinner (plus a separate snack action) → six daily goals
+(the five habits plus workout completion derived from logged sets) → a prominent card that
+opens today's workout directly, ready for set logging.
 
 **Removed from Home** (moved to Profile, see 5.5): daily protein streak, "Track What You
 Control," weight trend chart, weekly check-in, "Real Talk" callout, backup/import panel
@@ -126,10 +128,11 @@ Control," weight trend chart, weekly check-in, "Real Talk" callout, backup/impor
   your last session for that exercise ("last time: 40kg × 10") so you know what to beat.
   Exercise auto-marks done once all its sets are logged.
 
-### 5.6 Profile
-Everything moved off Home, plus account controls: email/sign-out, notification toggle, goal
-history/editor, weight trend chart + weigh-in entry, strength progress (per-exercise charts
-from set logs), habit/protein summary, weekly check-in notes.
+### 5.6 Navigation, Progress, and Me
+The signed-in app uses five persistent bottom destinations: Today, Train, Plan, Progress,
+and Me. Plan combines suggested meals and the Guide. Progress combines weekly habits,
+weight trend + weigh-in entry, strength progress, and weekly notes. Me contains email/sign
+out, notification settings, current/new goal controls, and legacy import.
 
 ### 5.7 Push notifications
 Web Push at the three meal windows, skipped for any meal already logged that day. Requires

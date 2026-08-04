@@ -8,6 +8,7 @@
 const APP_ROOT = document.getElementById("app");
 
 async function boot() {
+  if (!APP_ROOT.innerHTML.trim() && typeof appLoadingState === "function") APP_ROOT.innerHTML = appLoadingState();
   const session = await getSession();
   if (!session) return renderLoginScreen();
 
@@ -30,21 +31,23 @@ onAuthChange((session) => {
 // ---------- screen: login ----------
 function renderLoginScreen(errorMsg) {
   APP_ROOT.innerHTML = `
-    <div style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:28px;box-sizing:border-box">
-      <div style="text-align:center;margin-bottom:28px">
-        <div style="font-size:40px">🏋️</div>
-        <div style="font-size:24px;font-weight:900;color:var(--ink);margin-top:6px">Fitness Tracker</div>
-        <div style="font-size:13px;color:var(--grey);font-weight:700;margin-top:4px">Your daily food journal + strength log</div>
-      </div>
-      <div class="card">
-        <div style="font-size:14px;font-weight:800;color:var(--ink);margin-bottom:10px">Sign in with email</div>
-        <input id="loginEmail" type="email" placeholder="you@example.com" autocomplete="email"
-          style="width:100%;padding:12px;background:var(--soft);border:2px solid var(--line);border-radius:12px;font-size:14px;font-weight:700;box-sizing:border-box;margin-bottom:10px"/>
-        <button id="loginSubmit" class="btn3d" style="width:100%;padding:12px;font-size:14px;background:var(--green);--sd:var(--green-d)">Send magic link ✨</button>
-        <div id="loginMsg" style="font-size:12px;font-weight:700;margin-top:10px;text-align:center;color:var(--grey)">
+    <div class="auth-shell">
+      <section class="auth-hero">
+        <div class="auth-brand"><span>FT</span> FITNESS TRACKER</div>
+        <div class="auth-orbit"><i>🍳</i><b>3/3</b><i>🏋️</i></div>
+        <h1>Know what to do <em>today.</em></h1>
+        <p>Log meals in seconds, follow the next workout, and watch consistency turn into progress.</p>
+        <div class="auth-benefits"><span>✓ Photo-first meal journal</span><span>✓ Weight × reps workout logging</span><span>✓ Goal-based daily plan</span></div>
+      </section>
+      <section class="auth-card">
+        <span class="auth-kicker">WELCOME BACK</span><h2>Sign in to your plan</h2>
+        <label for="loginEmail">Email address</label>
+        <input id="loginEmail" type="email" placeholder="you@example.com" autocomplete="email"/>
+        <button id="loginSubmit" class="btn3d primary-button" style="--sd:var(--green-d)">Email me a sign-in link</button>
+        <div id="loginMsg" class="form-message">
           ${errorMsg ? `<span style="color:var(--red)">${errorMsg}</span>` : "No password needed — we'll email you a sign-in link."}
         </div>
-      </div>
+      </section>
     </div>`;
 
   document.getElementById("loginSubmit").addEventListener("click", async () => {
@@ -61,85 +64,60 @@ function renderLoginScreen(errorMsg) {
 
 // ---------- screen: onboarding ----------
 function renderOnboarding(user, profile) {
-  APP_ROOT.innerHTML = `
-    <div style="padding:24px 20px;box-sizing:border-box;max-width:480px;margin:0 auto">
-      <div style="text-align:center;margin-bottom:20px">
-        <div style="font-size:22px;font-weight:900;color:var(--ink)">Let's set you up 👋</div>
-        <div style="font-size:13px;color:var(--grey);font-weight:700;margin-top:4px">About 60 seconds. Everything here is editable later in Profile.</div>
-      </div>
-      <div class="card" style="display:flex;flex-direction:column;gap:14px">
-        ${obField("obName", "Your name", "text", "Fish")}
-        ${obField("obCurrentWeight", "Current weight (kg)", "number", "60")}
-        ${obField("obGoalWeight", "Goal weight (kg)", "number", "56.5")}
-        ${obField("obGoalTitle", "What are you working toward?", "text", "e.g. Phuket trip, or just getting stronger")}
-        ${obField("obGoalDate", "Target date (optional)", "date", "")}
-        <div>
-          <div style="font-size:12px;font-weight:800;color:var(--grey);margin-bottom:6px">Training level</div>
-          <div class="row" style="gap:8px">
-            <button data-level="beginner" class="pill obLevel" style="flex:1;padding:12px;font-size:13px;background:var(--green);color:#fff;box-shadow:0 3px 0 var(--green-d)">Beginner</button>
-            <button data-level="intermediate" class="pill obLevel" style="flex:1;padding:12px;font-size:13px;background:#fff;color:var(--grey);border:2px solid var(--line)">Intermediate</button>
-          </div>
-        </div>
-        <button id="obSubmit" class="btn3d" style="width:100%;padding:14px;font-size:15px;background:var(--green);--sd:var(--green-d);margin-top:6px">Start tracking →</button>
-        <div id="obMsg" style="font-size:12px;font-weight:700;text-align:center;color:var(--red)"></div>
-      </div>
-    </div>`;
+  const state = { step: 0, name: profile.display_name || "", currentWeight: "", goalWeight: "", goalTitle: "", goalDate: "", level: "beginner", saving: false, error: "" };
+  const steps = ["Your baseline", "Your target", "Your plan"];
 
-  let selectedLevel = "beginner";
-  document.querySelectorAll(".obLevel").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      selectedLevel = btn.dataset.level;
-      document.querySelectorAll(".obLevel").forEach((b) => {
-        const on = b.dataset.level === selectedLevel;
-        b.style.background = on ? "var(--green)" : "#fff";
-        b.style.color = on ? "#fff" : "var(--grey)";
-        b.style.boxShadow = on ? "0 3px 0 var(--green-d)" : "none";
-        b.style.border = on ? "none" : "2px solid var(--line)";
-      });
-    });
-  });
+  function draw() {
+    let content = "";
+    if (state.step === 0) content = `<div class="onboarding-fields">
+      <label for="obName">What should we call you?</label><input id="obName" type="text" placeholder="Your name" value="${escapeAuth(state.name)}"/>
+      <div class="two-column-fields"><div><label for="obCurrentWeight">Current kg</label><input id="obCurrentWeight" type="number" inputmode="decimal" step="0.1" placeholder="60" value="${state.currentWeight}"/></div><div><label for="obGoalWeight">Goal kg</label><input id="obGoalWeight" type="number" inputmode="decimal" step="0.1" placeholder="56.5" value="${state.goalWeight}"/></div></div>
+      <p class="field-help">Used to personalize progress—not to judge a single day.</p></div>`;
+    else if (state.step === 1) content = `<div class="onboarding-fields">
+      <label for="obGoalTitle">What are you working toward?</label><input id="obGoalTitle" type="text" placeholder="e.g. Get stronger, Phuket trip" value="${escapeAuth(state.goalTitle)}"/>
+      <label for="obGoalDate">Target date <span>optional</span></label><input id="obGoalDate" type="date" value="${state.goalDate}"/>
+      <div class="onboarding-tip">🎯 A deadline creates a focused plan. Skip it for an ongoing consistency plan.</div></div>`;
+    else content = `<div class="onboarding-fields"><label>Training experience</label><div class="choice-grid">
+      <button class="choice-card ${state.level === "beginner" ? "is-selected" : ""}" data-level="beginner"><span>🌱</span><strong>Beginner</strong><small>Build form and consistency</small></button>
+      <button class="choice-card ${state.level === "intermediate" ? "is-selected" : ""}" data-level="intermediate"><span>⚡</span><strong>Intermediate</strong><small>Progress with more volume</small></button></div>
+      <div class="plan-preview"><span>YOUR PLAN IS READY</span><h3>${escapeAuth(state.goalTitle || "Consistency plan")}</h3><p>${state.level === "beginner" ? "A structured, approachable week" : "A progressive higher-volume week"} · meal guidance · daily goals</p></div></div>`;
 
-  document.getElementById("obSubmit").addEventListener("click", async () => {
-    const name = document.getElementById("obName").value.trim();
-    const currentWeight = parseFloat(document.getElementById("obCurrentWeight").value);
-    const goalWeight = parseFloat(document.getElementById("obGoalWeight").value);
-    const goalTitle = document.getElementById("obGoalTitle").value.trim();
-    const goalDate = document.getElementById("obGoalDate").value || null;
-    const msg = document.getElementById("obMsg");
+    APP_ROOT.innerHTML = `<div class="onboarding-shell"><header class="onboarding-header"><div class="auth-brand"><span>FT</span> FITNESS TRACKER</div><div class="step-count">${state.step + 1} of 3</div></header>
+      <div class="step-progress">${steps.map((_, i) => `<i class="${i <= state.step ? "is-active" : ""}"></i>`).join("")}</div>
+      <main class="onboarding-card"><span class="auth-kicker">${steps[state.step].toUpperCase()}</span><h1>${state.step === 0 ? "Start with where you are" : state.step === 1 ? "Give the work a direction" : "Choose your starting pace"}</h1><p>${state.step === 0 ? "These numbers can change later." : state.step === 1 ? "Your goal shapes the workout plan." : "You can swap and adjust exercises anytime."}</p>${content}
+      <div id="obMsg" class="form-message error">${state.error}</div><div class="onboarding-actions">${state.step ? '<button id="obBack" class="secondary-button">Back</button>' : ""}<button id="obNext" class="btn3d primary-button" style="--sd:var(--green-d)">${state.saving ? "Building your plan…" : state.step === 2 ? "Start my plan" : "Continue"}</button></div></main></div>`;
 
-    if (!name || !currentWeight || !goalWeight || !goalTitle) {
-      msg.textContent = "Please fill in every field above (target date is optional).";
-      return;
+    document.querySelectorAll("[data-level]").forEach((btn) => btn.addEventListener("click", () => { state.level = btn.dataset.level; draw(); }));
+    document.getElementById("obBack")?.addEventListener("click", () => { state.error = ""; state.step--; draw(); });
+    document.getElementById("obNext").addEventListener("click", advance);
+  }
+
+  async function advance() {
+    state.error = "";
+    if (state.step === 0) {
+      state.name = document.getElementById("obName").value.trim();
+      state.currentWeight = document.getElementById("obCurrentWeight").value;
+      state.goalWeight = document.getElementById("obGoalWeight").value;
+      if (!state.name || !parseFloat(state.currentWeight) || !parseFloat(state.goalWeight)) { state.error = "Add your name, current weight, and goal weight."; draw(); return; }
+    } else if (state.step === 1) {
+      state.goalTitle = document.getElementById("obGoalTitle").value.trim(); state.goalDate = document.getElementById("obGoalDate").value;
+      if (!state.goalTitle) { state.error = "Give your goal a short, motivating name."; draw(); return; }
     }
-    msg.style.color = "var(--grey)"; msg.textContent = "Setting things up...";
-
+    if (state.step < 2) { state.step++; draw(); return; }
+    if (state.saving) return;
+    state.saving = true; draw();
     try {
-      await completeOnboarding(user.id, { displayName: name, trainingLevel: selectedLevel });
+      await completeOnboarding(user.id, { displayName: state.name, trainingLevel: state.level });
       const today = new Date().toISOString().slice(0, 10);
-      const templateId = goalDate ? "lean-peak" : "consistency";
-      const durationWeeks = goalDate
-        ? Math.max(1, Math.ceil((new Date(goalDate) - new Date(today)) / (7 * 86400000)))
-        : 5;
-      await createGoal(user.id, {
-        title: goalTitle, target_date: goalDate, start_weight: currentWeight,
-        goal_weight: goalWeight, template_id: templateId,
-        duration_weeks: durationWeeks, start_date: today, is_active: true,
-      });
-      await upsertWeightEntry(user.id, today, currentWeight);
+      const goalDate = state.goalDate || null;
+      await createGoal(user.id, { title: state.goalTitle, target_date: goalDate, start_weight: parseFloat(state.currentWeight), goal_weight: parseFloat(state.goalWeight), template_id: goalDate ? "lean-peak" : "consistency", duration_weeks: goalDate ? Math.max(1, Math.ceil((new Date(goalDate) - new Date(today)) / (7 * 86400000))) : 5, start_date: today, is_active: true });
+      await upsertWeightEntry(user.id, today, parseFloat(state.currentWeight));
       boot();
-    } catch (e) {
-      msg.style.color = "var(--red)";
-      msg.textContent = "Something went wrong — please try again.";
-    }
-  });
+    } catch (e) { state.saving = false; state.error = "Something went wrong — please try again."; draw(); }
+  }
+  draw();
 }
 
-function obField(id, label, type, placeholder) {
-  return `<div>
-    <div style="font-size:12px;font-weight:800;color:var(--grey);margin-bottom:6px">${label}</div>
-    <input id="${id}" type="${type}" placeholder="${placeholder}"
-      style="width:100%;padding:12px;background:var(--soft);border:2px solid var(--line);border-radius:12px;font-size:14px;font-weight:700;box-sizing:border-box"/>
-  </div>`;
-}
+function escapeAuth(value) { return String(value || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 
 boot();

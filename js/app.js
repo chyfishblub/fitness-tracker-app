@@ -20,11 +20,15 @@ const DB = {
 const UI_KEY = "fitnessTracker_ui_v2";
 function loadUi() {
   try { const raw = localStorage.getItem(UI_KEY); if (raw) return JSON.parse(raw); } catch (e) {}
-  return { activeTab: "dashboard", selectedWeek: 0, selectedDay: 0, expandedSlot: null, mealSheet: null, adjustSlot: null, swapPicker: null };
+  return { activeTab: "dashboard", selectedWeek: 0, selectedDay: 0, expandedSlot: null, mealSheet: null, adjustSlot: null, swapPicker: null, planSection: "meals", progressDay: null, workoutBrowse: false, exerciseMenu: null };
 }
 const ui = loadUi();
+const LEGACY_TAB_MAP = { meals: "plan", guide: "plan", habits: "progress" };
+if (LEGACY_TAB_MAP[ui.activeTab]) ui.activeTab = LEGACY_TAB_MAP[ui.activeTab];
+if (!ui.planSection) ui.planSection = "meals";
+if (ui.workoutBrowse == null) ui.workoutBrowse = false;
 function saveUi() {
-  try { localStorage.setItem(UI_KEY, JSON.stringify({ activeTab: ui.activeTab, selectedWeek: ui.selectedWeek, selectedDay: ui.selectedDay })); } catch (e) {}
+  try { localStorage.setItem(UI_KEY, JSON.stringify({ activeTab: ui.activeTab, selectedWeek: ui.selectedWeek, selectedDay: ui.selectedDay, planSection: ui.planSection })); } catch (e) {}
 }
 
 // ---------- date helpers ----------
@@ -44,6 +48,7 @@ function weekDates(goal, weekIndex) {
 // ---------- boot ----------
 async function initApp(user, profile) {
   AUTH.user = user; AUTH.profile = profile;
+  document.getElementById("app").innerHTML = appLoadingState();
   await loadAll();
   render();
 }
@@ -116,6 +121,32 @@ function lastSetsFor(exerciseId) {
 }
 
 // ---------- small render helpers ----------
+function appLoadingState() {
+  return `<div class="app-loading" role="status" aria-label="Loading your plan">
+    <div class="app-loading-mark">FT</div><div class="loading-bar"><span></span></div><p>Loading your day…</p>
+  </div>`;
+}
+function navIcon(name) {
+  const paths = {
+    dashboard: '<path d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-5v-6h-5v6h-5A1.5 1.5 0 0 1 3 19.5z"/>',
+    workout: '<path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/>',
+    plan: '<path d="M6 3.5h12a2 2 0 0 1 2 2v15H6a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2Zm3 4h7M9 11h7M9 14.5h5"/>',
+    progress: '<path d="M4 19.5V14h4v5.5M10 19.5V9h4v10.5M16 19.5V4h4v15.5M3 21h18"/>',
+    profile: '<circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/>',
+  };
+  return `<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths[name]}</svg>`;
+}
+function screenHeading(eyebrow, title, description) {
+  return `<header class="screen-heading"><div class="screen-eyebrow">${eyebrow}</div><h1>${title}</h1>${description ? `<p>${description}</p>` : ""}</header>`;
+}
+let toastTimer = null;
+function showToast(message, type) {
+  let toast = document.getElementById("appToast");
+  if (!toast) { toast = document.createElement("div"); toast.id = "appToast"; toast.setAttribute("role", "status"); document.body.appendChild(toast); }
+  toast.className = `app-toast ${type || ""}`; toast.textContent = message;
+  requestAnimationFrame(() => toast.classList.add("is-visible"));
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove("is-visible"), 2800);
+}
 function check(on, size) {
   size = size || 24;
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
@@ -151,27 +182,31 @@ function fmtDate(dateStr) {
 // ---------- TAB: DASHBOARD (Home) ----------
 function dashboard() {
   const today = todayStr();
+  return `<div class="home-stack">
+    ${screenHeading("TODAY", `Hi ${escapeHtml((AUTH.profile.display_name || "there").split(" ")[0])}`, "Meals first, then your goals and workout.")}
+    ${goalStatusLine(today)}
+    ${mealJournalCard(today)}
+    ${dailyGoalsCard(today)}
+    ${workoutPlanCard()}
+  </div>`;
+}
+
+function goalStatusLine(today) {
   const goal = DB.goal;
-  let h = '<div style="display:flex;flex-direction:column;gap:16px">';
+  const status = goal.target_date
+    ? `${Math.max(0, daysUntil(goal.target_date))} days to go · ${fmtDate(goal.target_date)}`
+    : `Day ${Math.max(1, Math.floor((new Date(today) - new Date(goal.start_date + "T00:00:00")) / 86400000) + 1)} of consistency`;
+  return `<div class="home-goal-strip">
+    <span class="home-goal-icon">🎯</span>
+    <div><div class="home-goal-title">${escapeHtml(goal.title)}</div><div class="home-goal-meta">${status}</div></div>
+  </div>`;
+}
 
-  if (goal.target_date) {
-    const days = daysUntil(goal.target_date);
-    h += `<div style="background:var(--blue);border-radius:20px;padding:22px;text-align:center;box-shadow:0 4px 0 var(--blue-d)">
-      <div style="font-size:12px;color:#fff;font-weight:800;letter-spacing:1px;opacity:0.9">🎯 ${escapeHtml(goal.title).toUpperCase()}</div>
-      <div style="font-size:56px;font-weight:900;color:#fff;line-height:1;margin-top:6px">${days}</div>
-      <div style="font-size:14px;color:#fff;opacity:0.9;font-weight:800">days to go</div></div>`;
-  } else {
-    const daySince = Math.floor((new Date(today) - new Date(goal.start_date + "T00:00:00")) / 86400000) + 1;
-    h += `<div style="background:var(--blue);border-radius:20px;padding:22px;text-align:center;box-shadow:0 4px 0 var(--blue-d)">
-      <div style="font-size:12px;color:#fff;font-weight:800;letter-spacing:1px;opacity:0.9">🎯 ${escapeHtml(goal.title).toUpperCase()}</div>
-      <div style="font-size:56px;font-weight:900;color:#fff;line-height:1;margin-top:6px">Day ${Math.max(1, daySince)}</div>
-      <div style="font-size:14px;color:#fff;opacity:0.9;font-weight:800">of staying consistent</div></div>`;
-  }
-
-  h += mealJournalCard(today);
-  h += todayGlanceCard(today);
-
-  return h + "</div>";
+function todayWorkoutProgress() {
+  const day = DB.plan.weeks[DB.todayWeekIndex].days[DB.todayDayIndex];
+  const total = day.ex.length;
+  const done = day.ex.filter((slot) => DB.setLogs.filter((s) => s.exercise_id === slot.exerciseId).length >= slot.sets).length;
+  return { day, total, done, complete: total === 0 || done >= total };
 }
 
 function mealJournalCard(today) {
@@ -179,82 +214,91 @@ function mealJournalCard(today) {
   const byType = {};
   const snacks = [];
   DB.mealLogs.forEach((l) => { if (l.meal_type === "snack") snacks.push(l); else byType[l.meal_type] = l; });
+  const meals = [["breakfast", "🍳", "Breakfast"], ["lunch", "🍚", "Lunch"], ["dinner", "🍽️", "Dinner"]];
+  const loggedCount = meals.filter(([type]) => byType[type]).length;
+  const rotations = [-90, 30, 150];
 
-  let h = `<div class="card">${sectionTitle("Today's Food Journal")}
-    <div style="font-size:12px;color:var(--grey);margin-bottom:12px;font-weight:700">Snap or upload what you actually ate — no calorie counting required.</div>`;
+  let h = `<section class="card home-card meal-card ${loggedCount === 3 ? "all-complete" : ""}">
+    <div class="home-section-heading"><div><div class="home-eyebrow">TODAY'S MEALS</div><div class="home-section-title">Log what you eat</div></div><span class="home-count-badge">${loggedCount}/3</span></div>
+    <div class="meal-ring-wrap">
+      <svg class="meal-ring" viewBox="0 0 160 160" role="img" aria-label="${loggedCount} of 3 meals logged">
+        <circle class="meal-ring-base" cx="80" cy="80" r="61" pathLength="100" stroke-dasharray="29 4.333" transform="rotate(-90 80 80)"></circle>
+        ${meals.map(([type, , label], index) => {
+          const log = byType[type];
+          const isNow = currentWindow === type;
+          const stateClass = log ? "is-logged" : isNow ? "is-now" : "";
+          return `<circle class="meal-ring-segment ${stateClass}" data-act="openMeal" data-type="${type}" cx="80" cy="80" r="61" pathLength="100" stroke-dasharray="29 71" transform="rotate(${rotations[index]} 80 80)" aria-label="${label}${log ? ", logged" : ", not logged"}"></circle>`;
+        }).join("")}
+      </svg>
+      <div class="meal-ring-center"><strong>${loggedCount}</strong><span>of 3 logged</span><small>${loggedCount === 3 ? "All meals done!" : "Tap a meal"}</small></div>
+    </div>
+    <div class="meal-chip-grid">`;
 
-  [["breakfast", "🍳", "Breakfast"], ["lunch", "🍚", "Lunch"], ["dinner", "🍽️", "Dinner"]].forEach(([type, icon, label]) => {
+  meals.forEach(([type, icon, label]) => {
     const log = byType[type];
     const isNow = currentWindow === type;
-    const win = MEAL_WINDOWS[type];
-    h += `<div class="tap" data-act="openMeal" data-type="${type}" style="display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:8px;
-      background:${log ? "#F0FBE6" : isNow ? "#FFF9E8" : "#fff"};border:2px solid ${log ? "var(--green)" : isNow ? "var(--gold)" : "var(--line)"};border-radius:16px">
-      ${mealThumb(log, icon)}
-      <div style="flex:1;min-width:0">
-        <div class="row" style="align-items:center;gap:6px">
-          <span style="font-size:14px;font-weight:900;color:var(--ink)">${label}</span>
-          ${isNow && !log ? '<span style="font-size:10px;background:var(--gold);color:#fff;padding:2px 7px;border-radius:8px;font-weight:800">NOW</span>' : ""}
-          ${log ? '<span style="font-size:10px;color:var(--green-d);font-weight:800">✓ Logged</span>' : ""}
-        </div>
-        <div style="font-size:11px;color:var(--grey);font-weight:700">${log ? (log.note ? escapeHtml(log.note) : "Tap to view/edit") : `Window: ${win.start}–${win.end}`}</div>
-      </div>
-      <div style="font-size:18px;color:var(--grey)">›</div>
-    </div>`;
+    h += `<button class="meal-chip ${log ? "is-logged" : isNow ? "is-now" : ""}" data-act="openMeal" data-type="${type}">
+      <span class="meal-chip-icon">${log && log.photo_path ? mealThumb(log, icon) : icon}</span>
+      <span class="meal-chip-copy"><strong>${label}</strong><small>${log ? "✓ Logged" : isNow ? "Log now" : MEAL_WINDOWS[type].start}</small></span>
+    </button>`;
   });
+  h += `</div>`;
 
   if (snacks.length) {
-    h += `<div style="font-size:11px;font-weight:800;color:var(--grey);margin:10px 0 6px;letter-spacing:0.5px">SNACKS & DRINKS</div>`;
+    h += `<div class="snack-label">SNACKS & DRINKS</div><div class="snack-row">`;
     snacks.forEach((s) => {
-      h += `<div class="tap" data-act="openMeal" data-type="snack" data-id="${s.id}" style="display:flex;align-items:center;gap:12px;padding:10px 12px;margin-bottom:8px;background:#F5F0FF;border:2px solid var(--purple);border-radius:16px">
-        ${mealThumb(s, "🥤")}
-        <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:800;color:var(--ink)">${s.note ? escapeHtml(s.note) : "Snack"}</div>
-        <div style="font-size:10px;color:var(--grey);font-weight:700">${new Date(s.logged_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</div></div>
-      </div>`;
+      h += `<button class="snack-chip" data-act="openMeal" data-type="snack" data-id="${s.id}">${s.note ? escapeHtml(s.note) : "Snack"}</button>`;
     });
+    h += `</div>`;
   }
 
-  h += `<button class="btn3d" data-act="openMeal" data-type="snack" style="width:100%;padding:11px;font-size:13px;background:var(--purple);--sd:var(--purple-d)">＋ Add snack</button>`;
-  h += "</div>";
+  h += `<button class="add-snack-button" data-act="openMeal" data-type="snack"><span>＋</span> Add snack or drink</button>`;
+  if (loggedCount === 3) h += `<div class="completion-note">🎉 Meals logged. Nice work staying aware today.</div>`;
+  h += "</section>";
   return h;
 }
 function mealThumb(log, fallbackIcon) {
-  if (!log || !log.photo_path) return `<div style="width:48px;height:48px;border-radius:12px;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${fallbackIcon}</div>`;
+  if (!log || !log.photo_path) return `<span class="meal-thumb meal-thumb-fallback">${fallbackIcon}</span>`;
   const url = photoUrlFor(log.photo_path);
-  if (!url) return `<div style="width:48px;height:48px;border-radius:12px;background:var(--soft);flex-shrink:0"></div>`;
-  return `<img src="${url}" style="width:48px;height:48px;border-radius:12px;object-fit:cover;flex-shrink:0"/>`;
+  if (!url) return `<span class="meal-thumb"></span>`;
+  return `<img src="${url}" class="meal-thumb" alt=""/>`;
 }
 
-function todayGlanceCard(today) {
-  const day = DB.plan.weeks[DB.todayWeekIndex].days[DB.todayDayIndex];
-  let h = `<div class="card">${sectionTitle("Today at a Glance")}`;
-
-  if (day.ex.length === 0 || day.type === "rest" && day.ex.every((e) => EXERCISES[e.exerciseId] && EXERCISES[e.exerciseId].muscle === "recovery")) {
-    h += `<div class="tap" data-act="tab" data-v="workout" style="display:flex;align-items:center;gap:10px;padding:10px 0">
-      <div style="font-size:22px">🌿</div><div><div style="font-size:14px;font-weight:800;color:var(--ink)">${day.focus}</div>
-      <div style="font-size:11px;color:var(--grey);font-weight:700">Rest day — tap to see recovery tips</div></div></div>`;
-  } else {
-    const doneCount = day.ex.filter((slot) => DB.setLogs.filter((s) => s.exercise_id === slot.exerciseId).length >= slot.sets).length;
-    const pct = (doneCount / day.ex.length) * 100;
-    h += `<div class="tap" data-act="tab" data-v="workout" style="padding:4px 0 10px">
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <div><div style="font-size:14px;font-weight:800;color:var(--ink)">🏋️ ${day.focus}</div>
-        <div style="font-size:11px;color:var(--grey);font-weight:700">${doneCount}/${day.ex.length} exercises done</div></div>
-        <div style="font-size:18px;color:var(--grey)">›</div></div>
-      <div style="height:8px;background:var(--soft);border-radius:5px;margin-top:8px;overflow:hidden">
-        <div style="height:100%;width:${pct}%;background:var(--green);border-radius:5px"></div></div></div>`;
-  }
-
-  h += `<div style="height:2px;background:var(--line);margin:10px 0"></div>`;
-  h += '<div class="row" style="gap:6px">';
+function dailyGoalsCard(today) {
+  const workout = todayWorkoutProgress();
+  const habitDoneCount = habitDefs.filter((hb) => isHabitDone(today, hb.id)).length;
+  const completedCount = habitDoneCount + (workout.complete ? 1 : 0);
+  const pct = Math.round((completedCount / (habitDefs.length + 1)) * 100);
+  let h = `<section class="card home-card daily-goals-card ${completedCount === habitDefs.length + 1 ? "all-complete" : ""}">
+    <div class="home-section-heading"><div><div class="home-eyebrow">GOALS FOR THE DAY</div><div class="home-section-title">Keep the streak alive</div></div><span class="home-count-badge is-orange">${completedCount}/${habitDefs.length + 1}</span></div>
+    <div class="goal-progress"><span style="width:${pct}%"></span></div>
+    <div class="daily-goal-grid">`;
   habitDefs.forEach((hb) => {
     const on = isHabitDone(today, hb.id);
-    h += `<button class="streakNode" data-act="habit" data-date="${today}" data-h="${hb.id}" style="flex:1;height:48px;
-      ${on ? "background:var(--orange);color:#fff;box-shadow:0 3px 0 var(--orange-d)" : "background:var(--soft);color:var(--grey);border:2px solid var(--line)"}" title="${hb.label}">${hb.icon}</button>`;
+    h += `<button class="daily-goal ${on ? "is-done" : ""}" data-act="habit" data-date="${today}" data-h="${hb.id}">
+      <span class="daily-goal-icon">${hb.icon}</span><span class="daily-goal-label">${hb.label}</span><span class="daily-goal-check">${on ? "✓" : ""}</span>
+    </button>`;
   });
-  h += "</div>";
-  h += `<div style="font-size:10px;color:var(--grey);margin-top:8px;font-weight:700;text-align:center">Tap an icon to mark today's habit done</div>`;
-  h += "</div>";
+  h += `<button class="daily-goal workout-goal ${workout.complete ? "is-done" : ""}" data-act="todayWorkout">
+    <span class="daily-goal-icon">${workout.day.type === "rest" ? "🌿" : "🏋️"}</span>
+    <span class="daily-goal-label"><strong>${workout.day.type === "rest" ? "Recovery plan" : "Today's workout"}</strong><small>${workout.total ? `${workout.done}/${workout.total} exercises complete` : "Rest and recharge"}</small></span>
+    <span class="daily-goal-check">${workout.complete ? "✓" : "›"}</span>
+  </button></div>${completedCount === habitDefs.length + 1 ? '<div class="completion-note">✨ Daily goals complete. That is how progress compounds.</div>' : ""}</section>`;
   return h;
+}
+
+function workoutPlanCard() {
+  const workout = todayWorkoutProgress();
+  const pct = workout.total ? Math.round((workout.done / workout.total) * 100) : 100;
+  return `<section class="today-workout-card tap" data-act="todayWorkout" role="button" tabindex="0" aria-label="Open today's workout: ${escapeHtml(workout.day.focus)}" style="--workout-color:${workout.day.color}">
+    <div class="workout-card-icon">${workout.day.type === "rest" ? "🌿" : "🏋️"}</div>
+    <div class="workout-card-copy"><div class="workout-card-eyebrow">TODAY'S ${workout.day.type === "rest" ? "RECOVERY" : "WORKOUT PLAN"}</div>
+      <div class="workout-card-title">${escapeHtml(workout.day.focus)}</div>
+      <div class="workout-card-meta">${workout.total ? `${workout.total} exercises · ${workout.done} completed` : "Nothing scheduled today"}</div>
+      <div class="workout-card-progress"><span style="width:${pct}%"></span></div>
+    </div>
+    <div class="workout-card-arrow">›</div>
+  </section>`;
 }
 
 function escapeHtml(s) { return (s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
@@ -269,8 +313,8 @@ function mealSheetOverlay() {
   const feeling = ui.mealSheet.feeling !== undefined ? ui.mealSheet.feeling : (log ? log.feeling : null);
   const noteVal = ui.mealSheet.noteDraft !== undefined ? ui.mealSheet.noteDraft : (log ? log.note || "" : "");
 
-  return `<div style="position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;display:flex;align-items:flex-end;justify-content:center">
-    <div style="background:#fff;width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:20px;max-height:88vh;overflow-y:auto;box-sizing:border-box">
+  return `<div class="sheet-backdrop">
+    <div class="bottom-sheet meal-log-sheet">
       <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:14px">
         <div style="font-size:17px;font-weight:900;color:var(--ink)">Log ${label}</div>
         <button data-act="closeMeal" style="border:none;background:var(--soft);width:32px;height:32px;border-radius:10px;font-size:16px;font-weight:900;color:var(--grey);cursor:pointer">✕</button>
@@ -332,7 +376,7 @@ async function saveMealSheet() {
     DB.mealLogs = await getMealLogsForDate(AUTH.user.id, today);
     ui.mealSheet = null;
   } catch (e) {
-    alert("Couldn't save that entry — check your connection and try again.");
+    showToast("Couldn't save that entry. Check your connection and try again.", "is-error");
     s.saving = false;
   }
   render();
@@ -353,19 +397,27 @@ function workoutTab() {
   const totalSlots = day.ex.length;
   const doneSlots = isToday ? day.ex.filter((slot) => DB.setLogs.filter((s) => s.exercise_id === slot.exerciseId).length >= slot.sets).length : 0;
   const pct = totalSlots ? (doneSlots / totalSlots) * 100 : 0;
+  const date = dateForWeekDay(DB.goal, week.weekIndex, ui.selectedDay);
 
-  let h = '<div style="display:flex;flex-direction:column;gap:12px">' + weekSelector() + dayTabs(week.days);
-  h += `<div style="background:${day.color};border-radius:20px;padding:16px;box-shadow:0 4px 0 rgba(0,0,0,0.12)">
-    <div style="font-size:11px;color:#fff;font-weight:800;letter-spacing:1px;opacity:0.9">${week.isPeak ? "PEAK WEEK" : "WEEK " + (week.weekIndex + 1)} · ${day.day}</div>
-    <div style="font-size:20px;font-weight:900;color:#fff;margin-top:2px">${day.focus}</div>
-    ${isToday ? `<div style="font-size:12px;color:#fff;opacity:0.9;font-weight:800;margin-top:4px">${doneSlots}/${totalSlots} done</div>
-    <div style="height:10px;background:rgba(255,255,255,0.3);border-radius:6px;margin-top:8px;overflow:hidden"><div style="height:100%;width:${pct}%;background:#fff;border-radius:6px;transition:width .3s"></div></div>`
-    : `<div style="font-size:12px;color:#fff;opacity:0.85;font-weight:800;margin-top:4px">${isFuture(week, day) ? "Upcoming" : "Past day"} · logging is only open on today's workout</div>`}
-    ${day.note ? `<div style="font-size:12px;color:#fff;opacity:0.95;font-weight:700;margin-top:8px;background:rgba(255,255,255,0.15);border-radius:10px;padding:8px 10px">${day.note}</div>` : ""}
-  </div>`;
+  let h = `<div class="screen-stack workout-screen">
+    ${screenHeading("TRAIN", isToday ? "Today's workout" : "Workout schedule", isToday ? "Beat your previous numbers, one set at a time." : "Browse your program without changing today's log.")}
+    <button class="schedule-toggle" data-act="toggleWorkoutBrowse"><span>📅 ${fmtDate(date)}</span><strong>${ui.workoutBrowse ? "Hide schedule" : "Browse schedule"}</strong></button>
+    ${ui.workoutBrowse ? `<div class="schedule-browser">${weekSelector()}${dayTabs(week.days)}</div>` : ""}
+    <section class="workout-hero" style="--day-color:${day.color}">
+      <div class="workout-hero-top"><span>${week.isPeak ? "PEAK WEEK" : "WEEK " + (week.weekIndex + 1)} · ${day.day}</span><span>${isToday ? "TODAY" : isFuture(week, day) ? "UPCOMING" : "PAST"}</span></div>
+      <h2>${escapeHtml(day.focus)}</h2>
+      <p>${totalSlots ? `${totalSlots} exercises · ${doneSlots} completed` : "Recovery is part of the plan."}</p>
+      <div class="workout-hero-progress"><span style="width:${pct}%"></span></div>
+      ${day.note ? `<div class="workout-note">${escapeHtml(day.note)}</div>` : ""}
+    </section>`;
 
   day.ex.forEach((slot) => h += exerciseCard(week, day, slot, isToday));
-  if (!day.ex.length) h += `<div class="card" style="text-align:center;color:var(--grey);font-size:13px;font-weight:700">Nothing scheduled — enjoy the rest. 🌿</div>`;
+  if (!day.ex.length) h += `<div class="empty-state"><div>🌿</div><h3>Recovery day</h3><p>Nothing to log today. Rest, walk, stretch, and come back stronger.</p></div>`;
+
+  if (isToday && totalSlots) {
+    const actionLabel = doneSlots >= totalSlots ? "Workout complete" : doneSlots ? `Continue workout · ${doneSlots}/${totalSlots}` : "Start workout";
+    h += `<div class="workout-action-dock"><button class="btn3d" data-act="resumeWorkout" style="--sd:var(--green-d)">${doneSlots >= totalSlots ? "✓" : "▶"} ${actionLabel}</button></div>`;
+  }
 
   return h + "</div>";
 }
@@ -381,55 +433,54 @@ function exerciseCard(week, day, slot, isToday) {
   const loggedSets = isToday ? DB.setLogs.filter((s) => s.exercise_id === slot.exerciseId).sort((a, b) => a.set_number - b.set_number) : [];
   const allDone = isToday && loggedSets.length >= slot.sets;
 
-  let h = `<div style="background:${allDone ? "#F0FBE6" : "#fff"};border:2px solid ${allDone ? "var(--green)" : "var(--line)"};border-radius:16px;overflow:hidden">
-    <div class="tap" data-act="toggleSlot" data-key="${key}" style="display:flex;align-items:center;gap:12px;padding:14px">
-      ${check(allDone)}
-      <div style="flex:1">
-        <div style="font-size:14px;font-weight:800;color:${allDone ? "var(--green-d)" : "var(--ink)"}">${exercise.name}</div>
-        <div style="font-size:11px;color:var(--grey);font-weight:700">${slot.sets}×${slot.reps}${slot.rest !== "-" ? " · rest " + slot.rest : ""}</div>
-      </div>
-      <div style="font-size:16px;color:var(--grey)">${expanded ? "︿" : "﹀"}</div>
+  let h = `<section class="exercise-card ${allDone ? "is-complete" : ""}" id="exercise-${key}">
+    <div class="exercise-card-header">
+      <button class="exercise-expand" data-act="toggleSlot" data-key="${key}" aria-expanded="${expanded}">
+        <span class="exercise-status">${allDone ? "✓" : slot.slot + 1}</span>
+        <span class="exercise-title"><strong>${escapeHtml(exercise.name)}</strong><small>${slot.sets} sets · ${slot.reps} reps${slot.rest !== "-" ? " · " + slot.rest + " rest" : ""}</small></span>
+        <span class="exercise-chevron">${expanded ? "−" : "+"}</span>
+      </button>
+      <button class="exercise-more" data-act="toggleExerciseMenu" data-key="${key}" aria-label="Exercise options">•••</button>
     </div>`;
+
+  if (ui.exerciseMenu === key) {
+    h += `<div class="exercise-menu">
+      <button data-act="openSwap" data-key="${key}" data-muscle="${exercise.muscle}" data-exercise="${slot.exerciseId}">↔ Swap exercise</button>
+      <button data-act="openAdjust" data-key="${key}">⚙ Adjust sets & reps</button>
+    </div>`;
+  }
 
   if (expanded) {
-    h += `<div style="padding:0 14px 14px">`;
+    h += `<div class="exercise-card-body">`;
     const last = lastSetsFor(slot.exerciseId);
-    if (last && last.length) {
-      h += `<div style="font-size:11px;color:var(--grey);font-weight:700;margin-bottom:8px">Last time: ${last.map((s) => `${s.weight_kg}kg×${s.reps}`).join(", ")}</div>`;
-    }
-
     if (isToday) {
-      loggedSets.forEach((s, i) => {
-        h += `<div class="row" style="align-items:center;gap:8px;padding:6px 0;font-size:13px;font-weight:800;color:var(--ink)">
-          <div style="width:22px;height:22px;border-radius:7px;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">${i + 1}</div>
-          <div>${s.weight_kg}kg × ${s.reps} reps</div></div>`;
-      });
-      if (loggedSets.length < slot.sets || true) {
-        h += `<div class="row" style="gap:8px;align-items:center;margin-top:8px">
-          <input type="number" step="0.5" placeholder="kg" id="setWeight-${key}" style="width:64px;padding:9px;background:var(--soft);border:2px solid var(--line);border-radius:10px;font-size:13px;font-weight:800;text-align:center"/>
-          <span style="color:var(--grey);font-weight:800">×</span>
-          <input type="number" placeholder="reps" id="setReps-${key}" style="width:64px;padding:9px;background:var(--soft);border:2px solid var(--line);border-radius:10px;font-size:13px;font-weight:800;text-align:center"/>
-          <button class="btn3d" data-act="logSet" data-key="${key}" data-exercise="${slot.exerciseId}" data-setnum="${loggedSets.length + 1}" style="flex:1;padding:10px;font-size:12px;background:var(--green);--sd:var(--green-d)">Log set ${loggedSets.length + 1}</button>
+      h += `<div class="set-table"><div class="set-row set-head"><span>SET</span><span>PREVIOUS</span><span>KG</span><span>REPS</span><span></span></div>`;
+      for (let i = 1; i <= slot.sets; i++) {
+        const current = loggedSets.find((s) => s.set_number === i) || loggedSets[i - 1];
+        const previous = last && (last.find((s) => s.set_number === i) || last[i - 1]);
+        const isNext = !current && i === loggedSets.length + 1;
+        h += `<div class="set-row ${current ? "is-complete" : isNext ? "is-next" : ""}">
+          <span class="set-number">${i}</span>
+          <span class="set-previous">${previous ? `${previous.weight_kg || 0}×${previous.reps || 0}` : "—"}</span>
+          ${current ? `<strong>${current.weight_kg || 0}</strong><strong>${current.reps || 0}</strong><span class="set-check">✓</span>`
+            : isNext ? `<input type="number" inputmode="decimal" step="0.5" placeholder="kg" id="setWeight-${key}" aria-label="Weight in kilograms for set ${i}"/><input type="number" inputmode="numeric" placeholder="${String(slot.reps).replace(/[^0-9].*$/, "") || "reps"}" id="setReps-${key}" aria-label="Repetitions for set ${i}"/><button class="set-log-button" data-act="logSet" data-key="${key}" data-exercise="${slot.exerciseId}" data-setnum="${i}" aria-label="Complete set ${i}">✓</button>`
+            : `<span>—</span><span>—</span><span class="set-pending"></span>`}
         </div>`;
       }
+      h += `</div>`;
     } else {
-      h += `<div style="font-size:12px;color:var(--grey);font-weight:700;margin-bottom:8px">Set logging opens when this is today's workout.</div>`;
+      h += `<div class="locked-note">Set logging opens on the scheduled day. You can still review or adjust the exercise.</div>`;
     }
-
-    h += `<div class="row" style="gap:8px;margin-top:12px">
-      <button class="pill" data-act="openSwap" data-key="${key}" data-muscle="${exercise.muscle}" data-exercise="${slot.exerciseId}" style="flex:1;padding:10px;font-size:12px;background:var(--soft);color:var(--ink);border:2px solid var(--line)">🔁 Swap</button>
-      <button class="pill" data-act="openAdjust" data-key="${key}" style="flex:1;padding:10px;font-size:12px;background:var(--soft);color:var(--ink);border:2px solid var(--line)">⚙️ Adjust</button>
-    </div>`;
     h += `</div>`;
   }
-  h += "</div>";
+  h += "</section>";
   return h;
 }
 
 async function logSetFor(key, exerciseId, setNumber) {
   const wEl = document.getElementById(`setWeight-${key}`), rEl = document.getElementById(`setReps-${key}`);
   const weight = parseFloat(wEl.value), reps = parseInt(rEl.value, 10);
-  if (!weight || !reps) { alert("Enter both weight and reps."); return; }
+  if (!weight || !reps) { showToast("Enter both weight and reps.", "is-error"); return; }
   await logSet(AUTH.user.id, { logDate: todayStr(), exerciseId, setNumber, weightKg: weight, reps });
   DB.setLogs = await getSetLogsForDate(AUTH.user.id, todayStr());
   render();
@@ -462,8 +513,8 @@ function swapPickerOverlay() {
   const { muscle, exerciseId } = ui.swapPicker;
   const current = EXERCISES[exerciseId];
   const options = Object.values(EXERCISES).filter((e) => e.muscle === muscle && e.id !== exerciseId);
-  return `<div style="position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;display:flex;align-items:flex-end;justify-content:center">
-    <div style="background:#fff;width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:20px;max-height:80vh;overflow-y:auto;box-sizing:border-box">
+  return `<div class="sheet-backdrop">
+    <div class="bottom-sheet">
       <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:14px">
         <div style="font-size:17px;font-weight:900;color:var(--ink)">Swap ${current ? current.name : ""}</div>
         <button data-act="closeSwap" style="border:none;background:var(--soft);width:32px;height:32px;border-radius:10px;font-size:16px;font-weight:900;color:var(--grey);cursor:pointer">✕</button>
@@ -477,8 +528,8 @@ function adjustFormOverlay() {
   if (!ui.adjustSlot) return "";
   const { key } = ui.adjustSlot;
   const { slot } = slotFromKey(key);
-  return `<div style="position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;display:flex;align-items:flex-end;justify-content:center">
-    <div style="background:#fff;width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:20px;box-sizing:border-box">
+  return `<div class="sheet-backdrop">
+    <div class="bottom-sheet">
       <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:14px">
         <div style="font-size:17px;font-weight:900;color:var(--ink)">Adjust sets/reps</div>
         <button data-act="closeAdjust" style="border:none;background:var(--soft);width:32px;height:32px;border-radius:10px;font-size:16px;font-weight:900;color:var(--grey);cursor:pointer">✕</button>
@@ -495,6 +546,18 @@ function adjustFormOverlay() {
     </div></div>`;
 }
 
+// ---------- TAB: PLAN ----------
+function planTab() {
+  return `<div class="screen-stack plan-screen">
+    ${screenHeading("PLAN", "Your playbook", "Meal ideas and practical guidance for the goal you're working toward.")}
+    <div class="segmented-control" role="tablist" aria-label="Plan sections">
+      <button class="${ui.planSection === "meals" ? "is-active" : ""}" data-act="planSection" data-v="meals" role="tab">Meal plan</button>
+      <button class="${ui.planSection === "guide" ? "is-active" : ""}" data-act="planSection" data-v="guide" role="tab">Guide</button>
+    </div>
+    ${ui.planSection === "guide" ? guideTab() : mealsTab()}
+  </div>`;
+}
+
 // ---------- TAB: MEALS (suggested plan) ----------
 function mealsTab() {
   const week = DB.plan.weeks[ui.selectedWeek];
@@ -503,31 +566,64 @@ function mealsTab() {
   const total = plan ? plan.meals.reduce((s, m) => s + m.cals, 0) : 0;
   const barColor = week.isPeak ? "var(--green)" : "var(--blue)";
 
-  let h = '<div style="display:flex;flex-direction:column;gap:12px">' + weekSelector() + dayTabs(week.days);
+  let h = '<div class="subscreen-stack"><div class="schedule-browser">' + weekSelector() + dayTabs(week.days) + '</div>';
   if (plan) {
-    h += `<div style="background:${barColor};border-radius:20px;padding:16px;text-align:center;box-shadow:0 4px 0 ${week.isPeak ? "var(--green-d)" : "var(--blue-d)"}">
-      <div style="font-size:11px;color:#fff;font-weight:800;opacity:0.9;letter-spacing:0.5px">${plan.label}</div>
-      <div style="font-size:34px;font-weight:900;color:#fff;margin-top:4px">~${total}<span style="font-size:15px;opacity:0.8"> kcal</span></div>
-      <div class="row" style="justify-content:center;gap:14px;margin-top:6px">
-        <span style="font-size:12px;color:#fff;font-weight:800">P ${plan.protein}</span>
-        <span style="font-size:12px;color:#fff;font-weight:800">C ${plan.carbs}</span>
-        <span style="font-size:12px;color:#fff;font-weight:800">F ${plan.fat}</span></div></div>`;
+    h += `<section class="meal-plan-summary" style="--plan-color:${barColor}">
+      <div><span>SUGGESTED DAY</span><h2>${escapeHtml(plan.label)}</h2><p>A guide, not a score. Log what you actually eat on Today.</p></div>
+      <div class="macro-summary"><strong>~${total}<small>kcal</small></strong><span>P ${plan.protein}</span><span>C ${plan.carbs}</span><span>F ${plan.fat}</span></div>
+    </section>`;
     plan.meals.forEach((meal) => {
-      h += `<div style="background:#fff;border:2px solid var(--line);border-radius:16px;padding:14px">
-        <div class="row" style="justify-content:space-between;align-items:center">
-          <span style="font-size:14px;font-weight:900;color:var(--ink)">${meal.name}</span>
-          <span style="font-size:11px;color:#fff;background:var(--gold);padding:2px 8px;border-radius:10px;font-weight:800">${meal.cals}</span></div>
-        <div style="font-size:11px;color:var(--grey);font-weight:800">${meal.time}</div>
-        <div style="font-size:12px;color:var(--ink);margin-top:5px;line-height:1.5;font-weight:600">${meal.desc}</div>
-        <div class="row" style="gap:10px;margin-top:5px">
-          <span style="font-size:10px;color:var(--red);font-weight:800">P:${meal.p}g</span>
-          <span style="font-size:10px;color:var(--blue);font-weight:800">C:${meal.c}g</span>
-          <span style="font-size:10px;color:var(--orange);font-weight:800">F:${meal.f}g</span></div></div>`;
+      h += `<article class="meal-plan-card"><div class="meal-plan-time">${meal.time}</div><div class="meal-plan-copy">
+        <div><h3>${escapeHtml(meal.name)}</h3><span>${meal.cals} kcal</span></div><p>${escapeHtml(meal.desc)}</p>
+        <small>P ${meal.p}g · C ${meal.c}g · F ${meal.f}g</small></div></article>`;
     });
   }
-  h += `<div style="background:#E8F7FF;border:2px solid var(--blue);border-radius:16px;padding:12px 14px;font-size:13px;font-weight:800;color:var(--blue-d)">
-    💡 This is your suggested plan. Log what you actually ate on the <b>Home</b> tab.</div>`;
+  h += `<div class="info-callout">💡 Meal logging stays on <strong>Today</strong>; this page is only your suggested plan.</div>`;
   return h + "</div>";
+}
+
+// ---------- TAB: PROGRESS ----------
+function progressTab() {
+  ensureHabitWeek(ui.selectedWeek);
+  const week = DB.plan.weeks[ui.selectedWeek];
+  const dates = weekDates(DB.goal, ui.selectedWeek);
+  const defaultDay = ui.selectedWeek === DB.todayWeekIndex ? DB.todayDayIndex : 0;
+  const selectedDay = ui.progressDay == null ? defaultDay : Math.min(ui.progressDay, 6);
+  const selectedDate = dates[selectedDay];
+  const habitTotal = dates.reduce((sum, date) => sum + habitDefs.filter((hb) => isHabitDone(date, hb.id)).length, 0);
+  const habitPossible = dates.length * habitDefs.length;
+  const habitPct = habitPossible ? Math.round((habitTotal / habitPossible) * 100) : 0;
+  const latestWeight = DB.weightEntries.length ? DB.weightEntries[DB.weightEntries.length - 1].weight_kg : null;
+
+  let h = `<div class="screen-stack progress-screen">
+    ${screenHeading("PROGRESS", "See the work add up", "Small daily wins become visible trends here.")}
+    <div class="progress-summary-grid">
+      <article><span>Current weight</span><strong>${latestWeight != null ? `${latestWeight} kg` : "—"}</strong><small>Goal ${DB.goal.goal_weight} kg</small></article>
+      <article><span>Weekly habits</span><strong>${habitPct}%</strong><small>${habitTotal} of ${habitPossible} checks</small></article>
+    </div>
+    <section class="progress-card">
+      <div class="card-heading"><div><span>WEEKLY HABITS</span><h2>Consistency</h2></div><strong>${habitTotal}/${habitPossible}</strong></div>
+      ${weekSelector()}
+      <div class="progress-days">`;
+  DAYS.forEach((name, index) => {
+    const count = habitDefs.filter((hb) => isHabitDone(dates[index], hb.id)).length;
+    h += `<button class="${selectedDay === index ? "is-active" : ""} ${count === habitDefs.length ? "is-complete" : ""}" data-act="progressDay" data-v="${index}"><span>${name.slice(0, 1)}</span><strong>${count}</strong></button>`;
+  });
+  h += `</div><div class="habit-editor"><div class="habit-editor-title"><strong>${fmtDate(selectedDate)}</strong><span>Tap to update</span></div>`;
+  habitDefs.forEach((hb) => {
+    const on = isHabitDone(selectedDate, hb.id);
+    h += `<button class="habit-row ${on ? "is-done" : ""}" data-act="habit" data-date="${selectedDate}" data-h="${hb.id}"><span>${hb.icon}</span><strong>${hb.label}</strong><i>${on ? "✓" : ""}</i></button>`;
+  });
+  const note = DB.weekNotes[week.weekIndex] || "";
+  h += `</div><label class="field-label" for="weekNoteInput">Weekly reflection</label><textarea id="weekNoteInput" data-week="${week.weekIndex}" placeholder="Energy, cravings, recovery…">${escapeHtml(note)}</textarea></section>
+    <section class="progress-card"><div class="card-heading"><div><span>WEIGHT TREND</span><h2>Body weight</h2></div></div>
+      <div class="quick-log"><input id="weighInInput" type="number" inputmode="decimal" step="0.1" placeholder="Today's weight (kg)"/><button class="btn3d" data-act="logWeight" style="--sd:var(--green-d)">Log</button></div>
+      <div class="chart-wrap"><canvas id="weightChart"></canvas></div></section>
+    <section class="progress-card"><div class="card-heading"><div><span>STRENGTH TREND</span><h2>Best set over time</h2></div></div>
+      <select id="strengthExercise">${Object.values(EXERCISES).filter((e) => e.muscle && e.muscle !== "recovery" && e.muscle !== "cardio").map((e) => `<option value="${e.id}" ${ui.strengthExercise === e.id ? "selected" : ""}>${e.name}</option>`).join("")}</select>
+      <div class="chart-wrap"><canvas id="strengthChart"></canvas></div></section>
+  </div>`;
+  return h;
 }
 
 // ---------- TAB: HABITS ----------
@@ -560,16 +656,14 @@ function habitsTab() {
 
 // ---------- TAB: GUIDE ----------
 function guideTab() {
-  let h = '<div style="display:flex;flex-direction:column;gap:14px">';
-  h += `<div style="background:var(--purple);border-radius:20px;padding:18px;box-shadow:0 4px 0 var(--purple-d)">
-    <div style="font-size:18px;font-weight:900;color:#fff">📖 Your Playbook</div>
-    <div style="font-size:12px;color:#fff;opacity:0.95;margin-top:4px;line-height:1.5;font-weight:700">Muscle-sparing, not extreme. The goal is looking lean & strong — not a crash diet that eats your muscle.</div></div>`;
+  let h = '<div class="subscreen-stack">';
+  h += `<div class="guide-intro"><div>📖</div><h2>Simple rules that travel well</h2><p>Muscle-sparing, sustainable, and practical enough for everyday life.</p></div>`;
   guideSections.forEach((s) => {
-    h += `<div class="card" style="border-color:${s.color}"><div style="font-size:15px;font-weight:900;color:${s.color};margin-bottom:8px">${s.title}</div>`;
+    h += `<article class="guide-card" style="--guide-color:${s.color}"><h3>${escapeHtml(s.title)}</h3>`;
     s.items.forEach((it, j) => {
-      h += `<div style="font-size:12px;color:var(--ink);padding:6px 0;line-height:1.5;font-weight:700;border-bottom:${j < s.items.length - 1 ? "2px solid var(--line)" : "none"}">${it}</div>`;
+      h += `<p><span>${j + 1}</span>${escapeHtml(it)}</p>`;
     });
-    h += "</div>";
+    h += "</article>";
   });
   return h + "</div>";
 }
@@ -580,62 +674,41 @@ if (typeof Chart !== "undefined") { Chart.defaults.font.family = "'Nunito', -app
 
 function profileTab() {
   const goal = DB.goal;
-  let h = '<div style="display:flex;flex-direction:column;gap:14px">';
-
-  h += `<div class="card">${sectionTitle("Account")}
-    <div style="font-size:14px;font-weight:800;color:var(--ink);margin-bottom:2px">${escapeHtml(AUTH.profile.display_name || "")}</div>
-    <div style="font-size:12px;color:var(--grey);font-weight:700;margin-bottom:12px">${AUTH.user.email}</div>
-    <div class="row" style="gap:8px">
-      <button class="pill" data-act="togglePush" style="flex:1;padding:11px;font-size:12px;background:var(--soft);color:var(--ink);border:2px solid var(--line)">${ui.pushEnabled ? "🔕 Disable reminders" : "🔔 Enable meal reminders"}</button>
-      <button class="pill" data-act="signOut" style="flex:1;padding:11px;font-size:12px;background:var(--soft);color:var(--red);border:2px solid var(--line)">Sign out</button>
-    </div></div>`;
-
-  h += `<div class="card">${sectionTitle("Current Goal")}
-    <div style="font-size:15px;font-weight:900;color:var(--ink)">${escapeHtml(goal.title)}</div>
-    <div style="font-size:12px;color:var(--grey);font-weight:700;margin-top:2px">${goal.target_date ? "Target: " + fmtDate(goal.target_date) : "No fixed deadline"} · ${goal.start_weight}kg → ${goal.goal_weight}kg</div>
-    <button class="pill" data-act="newGoalForm" style="width:100%;padding:11px;font-size:12px;background:var(--soft);color:var(--ink);border:2px solid var(--line);margin-top:12px">🎯 Start a new goal</button>
-    ${ui.newGoalOpen ? newGoalForm() : ""}
+  const name = AUTH.profile.display_name || "Fitness member";
+  const initial = name.trim().charAt(0).toUpperCase() || "F";
+  const currentWeight = DB.weightEntries.length ? Number(DB.weightEntries[DB.weightEntries.length - 1].weight_kg) : Number(goal.start_weight);
+  const weightDistance = Math.abs(Number(goal.start_weight) - Number(goal.goal_weight));
+  const goalProgress = weightDistance ? Math.max(0, Math.min(100, Math.round((Math.abs(Number(goal.start_weight) - currentWeight) / weightDistance) * 100))) : 100;
+  return `<div class="screen-stack profile-screen">
+    ${screenHeading("ME", "Your space", "Goals, reminders, account, and app settings.")}
+    <section class="profile-identity"><div class="profile-avatar">${escapeHtml(initial)}</div><div><h2>${escapeHtml(name)}</h2><p>${escapeHtml(AUTH.user.email)}</p></div></section>
+    <section class="goal-detail-card">
+      <div class="card-heading"><div><span>ACTIVE GOAL</span><h2>${escapeHtml(goal.title)}</h2></div><div class="goal-target">${goal.goal_weight}kg</div></div>
+      <div class="goal-route"><span>${goal.start_weight}kg</span><i><b style="width:${goalProgress}%"></b></i><span>${goal.goal_weight}kg</span></div>
+      <p>${goal.target_date ? `Target ${fmtDate(goal.target_date)} · ${Math.max(0, daysUntil(goal.target_date))} days remaining` : "No fixed deadline · consistency mode"}</p>
+      <button class="secondary-button" data-act="newGoalForm">${ui.newGoalOpen ? "Close goal form" : "Start a new goal"}</button>
+      ${ui.newGoalOpen ? newGoalForm() : ""}
+    </section>
+    <section class="settings-card"><div class="card-heading"><div><span>PREFERENCES</span><h2>App settings</h2></div></div>
+      <button class="settings-row" data-act="togglePush"><span class="settings-icon">🔔</span><span><strong>Meal reminders</strong><small>Breakfast, lunch, and dinner nudges</small></span><i>${ui.pushEnabled ? "On" : "Off"}</i></button>
+      <button class="settings-row danger" data-act="signOut"><span class="settings-icon">↗</span><span><strong>Sign out</strong><small>End this session on this device</small></span><i>›</i></button>
+    </section>
+    <details class="advanced-card"><summary><span><strong>Advanced</strong><small>Legacy import and data tools</small></span><i>＋</i></summary>
+      <div><p>Import weigh-ins and habit history stored by an older version of this app.</p><button class="secondary-button" data-act="importLegacy">Import legacy backup</button></div>
+    </details>
+    <p class="medical-note">Fitness Tracker offers general guidance, not medical or dietary advice.</p>
   </div>`;
-
-  h += `<div class="card">${sectionTitle("Weight Trend")}
-    <div class="row" style="gap:8px;margin-bottom:10px">
-      <input id="weighInInput" type="number" step="0.1" placeholder="Today's weight (kg)" style="flex:1;padding:11px;background:var(--soft);border:2px solid var(--line);border-radius:12px;font-size:13px;font-weight:800;box-sizing:border-box"/>
-      <button class="btn3d" data-act="logWeight" style="padding:11px 16px;font-size:12px;background:var(--green);--sd:var(--green-d)">Log</button>
-    </div>
-    <div style="position:relative;height:190px"><canvas id="weightChart"></canvas></div></div>`;
-
-  h += `<div class="card">${sectionTitle("Strength Progress")}
-    <select id="strengthExercise" style="width:100%;padding:11px;background:var(--soft);border:2px solid var(--line);border-radius:12px;font-size:13px;font-weight:800;margin-bottom:10px">
-      ${Object.values(EXERCISES).filter((e) => e.muscle && e.muscle !== "recovery" && e.muscle !== "cardio").map((e) => `<option value="${e.id}" ${ui.strengthExercise === e.id ? "selected" : ""}>${e.name}</option>`).join("")}
-    </select>
-    <div style="position:relative;height:180px"><canvas id="strengthChart"></canvas></div></div>`;
-
-  h += `<div class="card">${sectionTitle("What You Control")}
-    <div style="font-size:12px;color:var(--grey);margin-bottom:12px;font-weight:700">The habits that move the needle, regardless of what the scale says.</div>`;
-  const ctrl = [["🍗", "Protein 120g", "Protects muscle in a deficit"], ["👟", "8,000+ steps", "More weekly burn than any workout"], ["😴", "Sleep 7+ hrs", "Poor sleep holds fat, loses muscle"], ["🥗", "A real deficit", "Not a crash — sustainable wins"], ["🏋️", "Consistent training", "Show up, especially on hard days"]];
-  ctrl.forEach((r, i) => {
-    h += `<div class="row" style="gap:12px;align-items:center;padding:9px 0;border-bottom:${i < 4 ? "2px solid var(--line)" : "none"}">
-      <div style="font-size:22px">${r[0]}</div><div><div style="font-size:14px;color:var(--ink);font-weight:800">${r[1]}</div>
-      <div style="font-size:11px;color:var(--grey);font-weight:700">${r[2]}</div></div></div>`;
-  });
-  h += "</div>";
-
-  h += `<div class="card">${sectionTitle("Legacy Data")}
-    <div style="font-size:12px;color:var(--grey);margin-bottom:10px;font-weight:700">Have weigh-ins from the old version of this app on this device? Import them once.</div>
-    <button class="pill" data-act="importLegacy" style="width:100%;padding:11px;font-size:12px;background:var(--soft);color:var(--ink);border:2px solid var(--line)">⬆️ Import legacy backup</button></div>`;
-
-  return h + "</div>";
 }
 
 function newGoalForm() {
-  return `<div style="margin-top:14px;padding-top:14px;border-top:2px solid var(--line);display:flex;flex-direction:column;gap:10px">
-    <input id="ngTitle" placeholder="Goal title (e.g. 8-week cut)" style="padding:11px;background:var(--soft);border:2px solid var(--line);border-radius:12px;font-size:13px;font-weight:700;box-sizing:border-box"/>
-    <div class="row" style="gap:8px">
-      <input id="ngCurrent" type="number" step="0.1" placeholder="Current kg" style="flex:1;padding:11px;background:var(--soft);border:2px solid var(--line);border-radius:12px;font-size:13px;font-weight:700;box-sizing:border-box"/>
-      <input id="ngGoal" type="number" step="0.1" placeholder="Goal kg" style="flex:1;padding:11px;background:var(--soft);border:2px solid var(--line);border-radius:12px;font-size:13px;font-weight:700;box-sizing:border-box"/>
+  return `<div class="inline-form">
+    <label class="field-label" for="ngTitle">Goal name</label><input id="ngTitle" placeholder="e.g. 8-week strength block"/>
+    <div class="two-column-fields">
+      <div><label class="field-label" for="ngCurrent">Current kg</label><input id="ngCurrent" type="number" inputmode="decimal" step="0.1" placeholder="60"/></div>
+      <div><label class="field-label" for="ngGoal">Goal kg</label><input id="ngGoal" type="number" inputmode="decimal" step="0.1" placeholder="56.5"/></div>
     </div>
-    <input id="ngDate" type="date" style="padding:11px;background:var(--soft);border:2px solid var(--line);border-radius:12px;font-size:13px;font-weight:700;box-sizing:border-box"/>
-    <button class="btn3d" data-act="createGoal" style="padding:12px;font-size:13px;background:var(--green);--sd:var(--green-d)">Generate plan</button>
+    <label class="field-label" for="ngDate">Target date (optional)</label><input id="ngDate" type="date"/>
+    <button class="btn3d primary-button" data-act="createGoal" style="--sd:var(--green-d)">Generate my plan</button>
   </div>`;
 }
 
@@ -644,7 +717,7 @@ async function submitNewGoal() {
   const current = parseFloat(document.getElementById("ngCurrent").value);
   const goalW = parseFloat(document.getElementById("ngGoal").value);
   const date = document.getElementById("ngDate").value || null;
-  if (!title || !current || !goalW) { alert("Fill in title, current weight, and goal weight."); return; }
+  if (!title || !current || !goalW) { showToast("Fill in the goal name and both weights.", "is-error"); return; }
   const today = todayStr();
   const templateId = date ? "lean-peak" : "consistency";
   const durationWeeks = date ? Math.max(1, Math.ceil((new Date(date) - new Date(today)) / (7 * 86400000))) : 5;
@@ -654,7 +727,7 @@ async function submitNewGoal() {
   });
   await upsertWeightEntry(AUTH.user.id, today, current);
   ui.newGoalOpen = false; ui.selectedWeek = 0; ui.selectedDay = 0;
-  await loadAll(); render();
+  await loadAll(); showToast("Your new plan is ready.", "is-success"); render();
 }
 
 function renderWeightChart() {
@@ -677,9 +750,9 @@ function renderWeightChart() {
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: "bottom", labels: { boxWidth: 12, boxHeight: 12, padding: 14, color: "#4B4B4B", font: { weight: 800, size: 11 } } } },
-      scales: { x: { grid: { display: false }, ticks: { color: "#AFAFAF", font: { weight: 800, size: 10 } } },
-        y: { grid: { color: "#E5E5E5" }, ticks: { color: "#AFAFAF", font: { weight: 700, size: 11 }, callback: (v) => v + "kg" } } },
+      plugins: { legend: { position: "bottom", labels: { boxWidth: 12, boxHeight: 12, padding: 14, color: "#243129", font: { weight: 800, size: 11 } } } },
+      scales: { x: { grid: { display: false }, ticks: { color: "#66736B", font: { weight: 800, size: 10 } } },
+        y: { grid: { color: "#DDE6DD" }, ticks: { color: "#66736B", font: { weight: 700, size: 11 }, callback: (v) => v + "kg" } } },
     },
   });
 }
@@ -700,9 +773,9 @@ async function renderStrengthChart() {
       borderColor: "#CE82FF", backgroundColor: "#CE82FF", pointBackgroundColor: "#CE82FF", pointBorderColor: "#fff",
       pointBorderWidth: 2, pointRadius: 5, borderWidth: 3, tension: 0.3 }] },
     options: { responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: dates.length > 0, position: "bottom", labels: { color: "#4B4B4B", font: { weight: 800, size: 11 } } } },
-      scales: { x: { grid: { display: false }, ticks: { color: "#AFAFAF", font: { weight: 800, size: 10 } } },
-        y: { grid: { color: "#E5E5E5" }, ticks: { color: "#AFAFAF", font: { weight: 700, size: 11 }, callback: (v) => v + "kg" } } } },
+      plugins: { legend: { display: dates.length > 0, position: "bottom", labels: { color: "#243129", font: { weight: 800, size: 11 } } } },
+      scales: { x: { grid: { display: false }, ticks: { color: "#66736B", font: { weight: 800, size: 10 } } },
+        y: { grid: { color: "#DDE6DD" }, ticks: { color: "#66736B", font: { weight: 700, size: 11 }, callback: (v) => v + "kg" } } } },
   });
   if (!dates.length) {
     canvas.parentElement.insertAdjacentHTML("beforeend", '<div id="strengthEmpty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--grey);font-weight:700">No sets logged for this exercise yet.</div>');
@@ -712,7 +785,7 @@ async function renderStrengthChart() {
 async function importLegacyData() {
   let raw;
   try { raw = JSON.parse(localStorage.getItem("fitnessTracker_app_v1")); } catch (e) {}
-  if (!raw) { alert("No legacy backup found on this device."); return; }
+  if (!raw) { showToast("No legacy backup was found on this device."); return; }
   let imported = 0;
   if (Array.isArray(raw.weeklyWeights)) {
     for (let i = 0; i < raw.weeklyWeights.length; i++) {
@@ -734,13 +807,13 @@ async function importLegacyData() {
   }
   DB.weightEntries = await getWeightEntries(AUTH.user.id);
   DB.habitWeeksLoaded.clear();
-  alert(`Imported ${imported} legacy entries.`);
+  showToast(`Imported ${imported} legacy entries.`, "is-success");
   render();
 }
 
 // ---------- push notifications ----------
 async function togglePush() {
-  if (!("serviceWorker" in navigator) || !("PushManager" in window)) { alert("Push notifications aren't supported in this browser."); return; }
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) { showToast("Push notifications aren't supported in this browser.", "is-error"); return; }
   const reg = await navigator.serviceWorker.ready;
   const existing = await reg.pushManager.getSubscription();
   if (existing) {
@@ -753,9 +826,11 @@ async function togglePush() {
       await savePushSubscription(AUTH.user.id, sub);
       ui.pushEnabled = true;
     } catch (e) {
-      alert("Couldn't enable reminders. On iPhone, add this app to your Home Screen first (Share → Add to Home Screen).");
+      showToast("Couldn't enable reminders. On iPhone, add the app to your Home Screen first.", "is-error");
+      return;
     }
   }
+  showToast(ui.pushEnabled ? "Meal reminders enabled." : "Meal reminders disabled.", "is-success");
   render();
 }
 function urlBase64ToUint8Array(base64String) {
@@ -768,35 +843,35 @@ function urlBase64ToUint8Array(base64String) {
 // ---------- MAIN RENDER ----------
 function render() {
   if (!DB.goal) return;
-  const tabs = [["dashboard", "Home", "🏠"], ["workout", "Train", "🏋️"], ["meals", "Eat", "🍽️"], ["habits", "Habits", "✅"], ["guide", "Guide", "📖"], ["profile", "Me", "👤"]];
-  let nav = '<div class="row" style="gap:4px;padding:6px 10px 8px;overflow-x:auto;position:sticky;top:0;background:#fff;z-index:10;border-bottom:2px solid var(--line)">';
+  const tabs = [["dashboard", "Today"], ["workout", "Train"], ["plan", "Plan"], ["progress", "Progress"], ["profile", "Me"]];
+  if (!tabs.some((t) => t[0] === ui.activeTab)) ui.activeTab = "dashboard";
+  let nav = '<nav class="bottom-nav" aria-label="Primary navigation">';
   tabs.forEach((t) => {
     const a = ui.activeTab === t[0];
-    nav += `<button class="pill" data-act="tab" data-v="${t[0]}" style="padding:9px 12px;font-size:12px;white-space:nowrap;
-      ${a ? "background:var(--green);color:#fff;box-shadow:0 3px 0 var(--green-d)" : "background:transparent;color:var(--grey)"}">${t[2]} ${t[1]}</button>`;
+    nav += `<button data-act="tab" data-v="${t[0]}" class="${a ? "is-active" : ""}" aria-current="${a ? "page" : "false"}">${navIcon(t[0])}<span>${t[1]}</span></button>`;
   });
-  nav += "</div>";
+  nav += "</nav>";
 
   let body = "";
   if (ui.activeTab === "dashboard") body = dashboard();
   else if (ui.activeTab === "workout") body = workoutTab();
-  else if (ui.activeTab === "meals") body = mealsTab();
-  else if (ui.activeTab === "habits") body = habitsTab();
-  else if (ui.activeTab === "guide") body = guideTab();
+  else if (ui.activeTab === "plan") body = planTab();
+  else if (ui.activeTab === "progress") body = progressTab();
   else if (ui.activeTab === "profile") body = profileTab();
 
+  const displayName = AUTH.profile.display_name || "there";
+  const initial = displayName.trim().charAt(0).toUpperCase() || "F";
+
   document.getElementById("app").innerHTML = `
-    <div style="padding:18px 16px 12px;background:#fff">
-      <div style="font-size:11px;color:var(--green);font-weight:900;letter-spacing:2px">FITNESS TRACKER</div>
-      <div style="font-size:24px;font-weight:900;color:var(--ink);margin-top:2px">${escapeHtml(DB.goal.title)} 🏋️</div>
-      <div style="font-size:12px;color:var(--grey);margin-top:1px;font-weight:700">Never lose the habit. Get measurably stronger.</div>
+    <div class="app-shell">
+      <header class="app-topbar"><div><span class="app-wordmark">FT</span><span class="app-date">${new Date().toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}</span></div><button class="topbar-avatar" data-act="tab" data-v="profile" aria-label="Open profile">${escapeHtml(initial)}</button></header>
+      <main class="app-main">${body}</main>
+      ${nav}
     </div>
-    ${nav}
-    <div style="padding:14px 14px 48px">${body}</div>
     ${mealSheetOverlay()}${swapPickerOverlay()}${adjustFormOverlay()}`;
 
   saveUi();
-  if (ui.activeTab === "profile") { renderWeightChart(); renderStrengthChart(); }
+  if (ui.activeTab === "progress") { renderWeightChart(); renderStrengthChart(); }
   else { if (weightChartInstance) { weightChartInstance.destroy(); weightChartInstance = null; } if (strengthChartInstance) { strengthChartInstance.destroy(); strengthChartInstance = null; } }
 }
 
@@ -805,9 +880,33 @@ document.addEventListener("click", async (e) => {
   const btn = e.target.closest("[data-act]"); if (!btn) return;
   const act = btn.dataset.act;
 
-  if (act === "tab") { ui.activeTab = btn.dataset.v; ui.expandedSlot = null; }
-  else if (act === "week") { ui.selectedWeek = parseInt(btn.dataset.v, 10); ui.selectedDay = 0; }
+  if (act === "tab") {
+    ui.activeTab = btn.dataset.v; ui.expandedSlot = null; ui.exerciseMenu = null;
+    if (ui.activeTab === "workout") { ui.selectedWeek = DB.todayWeekIndex; ui.selectedDay = DB.todayDayIndex; ui.workoutBrowse = false; }
+  }
+  else if (act === "todayWorkout") {
+    ui.activeTab = "workout";
+    ui.selectedWeek = DB.todayWeekIndex;
+    ui.selectedDay = DB.todayDayIndex;
+    ui.expandedSlot = null;
+    ui.workoutBrowse = false;
+    ui.exerciseMenu = null;
+  }
+  else if (act === "week") { ui.selectedWeek = parseInt(btn.dataset.v, 10); ui.selectedDay = 0; ui.progressDay = null; }
   else if (act === "day") { ui.selectedDay = parseInt(btn.dataset.v, 10); }
+  else if (act === "planSection") { ui.planSection = btn.dataset.v; }
+  else if (act === "progressDay") { ui.progressDay = parseInt(btn.dataset.v, 10); }
+  else if (act === "toggleWorkoutBrowse") { ui.workoutBrowse = !ui.workoutBrowse; }
+  else if (act === "toggleExerciseMenu") { ui.exerciseMenu = ui.exerciseMenu === btn.dataset.key ? null : btn.dataset.key; }
+  else if (act === "resumeWorkout") {
+    const day = DB.plan.weeks[DB.todayWeekIndex].days[DB.todayDayIndex];
+    const next = day.ex.find((slot) => DB.setLogs.filter((s) => s.exercise_id === slot.exerciseId).length < slot.sets);
+    if (!next) { ui.activeTab = "dashboard"; render(); return; }
+    ui.expandedSlot = `${DB.todayWeekIndex}-${day.day}-${next.slot}`;
+    render();
+    setTimeout(() => document.getElementById(`exercise-${ui.expandedSlot}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+    return;
+  }
   else if (act === "openMeal") {
     const type = btn.dataset.type;
     let log = null;
@@ -829,14 +928,14 @@ document.addEventListener("click", async (e) => {
   }
   else if (act === "toggleSlot") { ui.expandedSlot = ui.expandedSlot === btn.dataset.key ? null : btn.dataset.key; }
   else if (act === "logSet") { await logSetFor(btn.dataset.key, btn.dataset.exercise, parseInt(btn.dataset.setnum, 10)); return; }
-  else if (act === "openSwap") { ui.swapPicker = { key: btn.dataset.key, muscle: btn.dataset.muscle, exerciseId: btn.dataset.exercise }; }
+  else if (act === "openSwap") { ui.exerciseMenu = null; ui.swapPicker = { key: btn.dataset.key, muscle: btn.dataset.muscle, exerciseId: btn.dataset.exercise }; }
   else if (act === "closeSwap") { ui.swapPicker = null; }
   else if (act === "doSwap") {
     const { weekIndex, dayIndex, slot } = slotFromKey(ui.swapPicker.key);
     await saveOverride(weekIndex, dayIndex, slot, { exerciseId: btn.dataset.exercise });
     ui.swapPicker = null;
   }
-  else if (act === "openAdjust") { ui.adjustSlot = { key: btn.dataset.key }; }
+  else if (act === "openAdjust") { ui.exerciseMenu = null; ui.adjustSlot = { key: btn.dataset.key }; }
   else if (act === "closeAdjust") { ui.adjustSlot = null; }
   else if (act === "saveAdjust") {
     const { weekIndex, dayIndex, slot } = slotFromKey(ui.adjustSlot.key);
@@ -850,9 +949,10 @@ document.addEventListener("click", async (e) => {
   else if (act === "createGoal") { await submitNewGoal(); return; }
   else if (act === "logWeight") {
     const val = parseFloat(document.getElementById("weighInInput").value);
-    if (!val) { alert("Enter a weight."); return; }
+    if (!val) { showToast("Enter today's weight.", "is-error"); return; }
     await upsertWeightEntry(AUTH.user.id, todayStr(), val);
     DB.weightEntries = await getWeightEntries(AUTH.user.id);
+    showToast("Weight logged.", "is-success");
   }
   else if (act === "importLegacy") { await importLegacyData(); return; }
   else if (act === "togglePush") { await togglePush(); return; }
@@ -878,6 +978,12 @@ document.addEventListener("change", async (e) => {
 document.addEventListener("input", (e) => {
   const el = e.target.closest("[data-act]"); if (!el) return;
   if (el.dataset.act === "mealNote") { ui.mealSheet.noteDraft = el.value; }
+});
+document.addEventListener("keydown", (e) => {
+  const target = e.target.closest('[data-act="todayWorkout"][role="button"]');
+  if (!target || (e.key !== "Enter" && e.key !== " ")) return;
+  e.preventDefault();
+  target.click();
 });
 document.addEventListener("blur", async (e) => {
   if (e.target && e.target.id === "weekNoteInput") {
