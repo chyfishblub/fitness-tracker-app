@@ -7,15 +7,18 @@
    files, so the browser knows to refresh its cached copies.
    ============================================================ */
 
-const CACHE_NAME = "fitness-tracker-v9";
+const CACHE_NAME = "fitness-tracker-v12";
 const CORE_FILES = [
   "./",
   "./index.html",
   "./styles.css",
+  "./pixel.css",
+  "./js/pixel.js",
   "./js/config.js",
   "./js/supabase.js",
   "./js/data.js",
   "./js/plan.js",
+  "./js/game.js",
   "./js/auth.js",
   "./js/app.js",
   "./manifest.json",

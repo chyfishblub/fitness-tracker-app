@@ -190,6 +190,35 @@ async function getSetHistory(userId, exerciseId) {
   return data;
 }
 
+// ---------- spotter name ----------
+// The Spotter's name lives in the auth user's metadata, so it follows the account across
+// devices without a schema change. Returns the updated user.
+async function saveSpotterName(name) {
+  const { data, error } = await sb.auth.updateUser({ data: { spotter_name: name } });
+  if (error) throw error;
+  return data.user;
+}
+
+// ---------- activity history (for XP, levels and badges in game.js) ----------
+// Supabase returns at most 1,000 rows per request, so page through.
+async function selectAllRows(build) {
+  const rows = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await build().range(from, from + 999);
+    if (error) throw error;
+    rows.push(...data);
+    if (data.length < 1000) return rows;
+  }
+}
+async function getActivityHistory(userId) {
+  const [meals, habits, sets] = await Promise.all([
+    selectAllRows(() => sb.from("meal_logs").select("log_date,meal_type,photo_path").eq("user_id", userId).order("log_date")),
+    selectAllRows(() => sb.from("habit_logs").select("log_date,habit_id").eq("user_id", userId).eq("done", true).order("log_date")),
+    selectAllRows(() => sb.from("set_logs").select("log_date,exercise_id,set_number,weight_kg,reps").eq("user_id", userId).order("log_date")),
+  ]);
+  return { meals, habits, sets };
+}
+
 // ---------- weight entries ----------
 async function getWeightEntries(userId) {
   const { data, error } = await sb.from("weight_entries")

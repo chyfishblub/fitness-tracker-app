@@ -1,0 +1,16 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-11-13T09:30:00Z" },
+  "title": "Juno Redesign",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 1280, "h": 880, "title": "A · Paper & Ink (doodle-led) · recommended" },
+    "Daylight.dc.html": { "x": 1360, "y": 0, "w": 1280, "h": 880, "title": "B · Daylight (Elemental-led)" }
+  },
+  "order": ["Main.dc.html", "Daylight.dc.html"],
+  "notes": {
+    "t1": { "x": 0, "y": -260, "text": "Step 2 · Visual direction for Juno: pick A, B, or a named hybrid", "kind": "title1", "maxW": 2640 }
+  },
+  "designSystems": []
+}

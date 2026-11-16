@@ -1,0 +1,33 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-11-10T03:30:00Z" },
+  "title": "Pocket Spotter Mockups",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "System.dc.html": { "x": 0, "y": 0, "w": 1280, "h": 810, "title": "Character system · perch · card footprint · tones" },
+    "Main.dc.html": { "x": 0, "y": 880, "w": 390, "h": 844, "title": "1 · Coach builder (onboarding step 5)" },
+    "Today.dc.html": { "x": 470, "y": 880, "w": 390, "h": 844, "title": "2 · Today — next action" },
+    "Train.dc.html": { "x": 940, "y": 880, "w": 390, "h": 844, "title": "3 · Active Train — coach collapsed" },
+    "Demo.dc.html": { "x": 1410, "y": 880, "w": 390, "h": 844, "title": "4 · Exercise demo sheet" },
+    "Progress.dc.html": { "x": 1880, "y": 880, "w": 390, "h": 844, "title": "5 · Progress — weekly story" },
+    "Recovery.dc.html": { "x": 2350, "y": 880, "w": 390, "h": 844, "title": "6 · Recovery after two quiet days" },
+    "Styles.dc.html": { "x": 0, "y": 1844, "w": 1280, "h": 700, "title": "Five style directions from the references" }
+  },
+  "order": [
+    "Main.dc.html",
+    "Today.dc.html",
+    "Train.dc.html",
+    "Demo.dc.html",
+    "Progress.dc.html",
+    "Recovery.dc.html",
+    "System.dc.html",
+    "Styles.dc.html"
+  ],
+  "notes": {
+    "t1": { "x": 0, "y": -260, "text": "Pocket Spotter — character system (approve before source work)", "kind": "title1", "maxW": 1280 },
+    "t2": { "x": 0, "y": 830, "text": "Six core screens · 390 × 844 · Elemental Gradient skin", "kind": "title1", "maxW": 2740 },
+    "t3": { "x": 0, "y": 1790, "text": "Five style directions from the saved references (pick one, or a hybrid)", "kind": "title1", "maxW": 1280 }
+  },
+  "designSystems": []
+}

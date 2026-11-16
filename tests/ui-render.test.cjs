@@ -18,7 +18,7 @@ function appHarness() {
     window: {}, navigator: {}, getLastSetLogs: async () => [],
   };
   vm.createContext(context);
-  for (const file of ["js/data.js", "js/plan.js", "js/app.js"]) {
+  for (const file of ["js/data.js", "js/plan.js", "js/game.js", "js/app.js"]) {
     vm.runInContext(fs.readFileSync(file, "utf8"), context, { filename: file });
   }
   vm.runInContext(`
@@ -45,12 +45,16 @@ async function testSignedInApp() {
 
   const nav = screens.dashboard.match(/<nav class="bottom-nav"[\s\S]*?<\/nav>/)[0];
   assert.equal((nav.match(/<button/g) || []).length, 5, "bottom nav has five destinations");
-  assert.match(screens.dashboard, /Log what you eat/);
+  assert.match(screens.dashboard, /Snap your meals/);
   assert.match(screens.dashboard, /data-act="openMealHistory"/);
   assert.match(screens.workout, /Today.s workout/);
   assert.match(screens.plan, /Your playbook/);
   assert.match(screens.progress, /Weekly habits/);
   assert.match(screens.profile, /App settings/);
+  // Brand voice (docs/redesign/02-brand.md): no streak pressure, no food morality.
+  for (const [tab, html] of Object.entries(screens)) {
+    assert.doesNotMatch(html, /streak|guilty|cheat\b|behind|failed/i, `${tab} uses a banned brand word`);
+  }
 
   vm.runInContext(`
     ui.activeTab = "workout";
@@ -59,11 +63,11 @@ async function testSignedInApp() {
     render();
   `, context);
   assert.match(appNode.innerHTML, /class="set-table"/);
-  assert.match(appNode.innerHTML, /PREVIOUS/);
+  assert.match(appNode.innerHTML, /LAST TIME/);
   assert.match(appNode.innerHTML, /aria-label="Complete set 1"/);
 
   vm.runInContext(`ui.activeTab = "plan"; ui.planSection = "guide"; render();`, context);
-  assert.match(appNode.innerHTML, /Simple rules that travel well/);
+  assert.match(appNode.innerHTML, /Power-ups for real life/);
 
   await handlers.click[0]({ target: { closest: () => ({ dataset: { act: "todayWorkout" } }) } });
   const route = vm.runInContext(`({ tab: ui.activeTab, week: ui.selectedWeek, day: ui.selectedDay })`, context);
@@ -134,7 +138,10 @@ async function testMealPersistence() {
 
   const sw = fs.readFileSync("sw.js", "utf8");
   const html = fs.readFileSync("index.html", "utf8");
-  assert.match(sw, /fitness-tracker-v9/);
+  assert.match(sw, /fitness-tracker-v12/);
+  assert.match(sw, /\.\/pixel\.css/, "service worker caches the pixel skin");
+  assert.match(sw, /\.\/js\/pixel\.js/);
+  assert.match(html, /js\/app\.js[\s\S]*js\/pixel\.js[\s\S]*js\/auth\.js/, "pixel.js loads after app.js and before auth.js");
   assert.match(sw, /fetch\(event\.request\)[\s\S]*caches\.match\(event\.request\)/, "service worker uses network-first app assets");
   assert.match(html, /updateViaCache:\s*"none"/);
 }
@@ -152,18 +159,72 @@ async function testAuthScreens() {
   vm.createContext(context);
   vm.runInContext(fs.readFileSync("js/auth.js", "utf8"), context, { filename: "js/auth.js" });
   await new Promise((resolve) => setTimeout(resolve, 0));
-  assert.match(appNode.innerHTML, /Know what to do/);
-  assert.match(appNode.innerHTML, /Photo-first meal journal/);
-  assert.match(appNode.innerHTML, /Continue as guest/);
-  assert.match(appNode.innerHTML, /tied to this browser/);
-  assert.match(appNode.innerHTML, /save across devices/);
+  assert.match(appNode.innerHTML, /Your fitness buddy/);
+  assert.match(appNode.innerHTML, /Snap-a-photo meal log/);
+  assert.match(appNode.innerHTML, /Play as guest/);
+  assert.match(appNode.innerHTML, /stays in this browser/);
+  assert.match(appNode.innerHTML, /save your progress on every device/);
   vm.runInContext(`renderOnboarding({ id: "user-1" }, { display_name: "" })`, context);
   assert.match(appNode.innerHTML, /1 of 3/);
-  assert.match(appNode.innerHTML, /Start with where you are/);
+  assert.match(appNode.innerHTML, /Create your player/);
+  assert.doesNotMatch(appNode.innerHTML, /obCurrentWeight/, "weight is not asked for on the first step");
+  assert.match(appNode.innerHTML, /Name your Spotter/, "the buddy is a Spotter the player names");
+  assert.match(appNode.innerHTML, /data-spotter="Bean"/);
+}
+
+async function testGameLayer() {
+  const { context, appNode } = appHarness();
+  const run = (code) => vm.runInContext(code, context);
+  // Levels: 100 XP for level 2, then 150 more for level 3.
+  assert.deepEqual(JSON.parse(JSON.stringify(run("levelFor(0)"))), { level: 1, into: 0, need: 100 });
+  assert.equal(run("levelFor(100).level"), 2);
+  assert.equal(run("levelFor(249).level"), 2);
+  assert.equal(run("levelFor(250).level"), 3);
+  // Walks and holds are ticked, lifts are weighed.
+  assert.equal(run(`isTimedMove({ exerciseId: "lightWalk", reps: "30min" })`), true);
+  assert.equal(run(`isTimedMove({ exerciseId: "plank", reps: "45s" })`), true);
+  assert.equal(run(`isTimedMove({ exerciseId: "benchPress", reps: "8-10" })`), false);
+
+  // History from earlier days counts toward lifetime XP, badges and personal bests.
+  run(`
+    const d = (n) => { const x = new Date(); x.setDate(x.getDate() - n); return todayStr(x); };
+    DB.history = {
+      meals: [{ log_date: d(1), meal_type: "breakfast", photo_path: "a.jpg" }, { log_date: d(1), meal_type: "lunch" }, { log_date: d(1), meal_type: "dinner" }],
+      habits: [], sets: [{ log_date: d(1), exercise_id: "benchPress", set_number: 1, weight_kg: 20, reps: 10 }],
+    };
+    DB.historyHabits = new Set([d(1) + "|water"]);
+    DB.setLogs = [{ exercise_id: "benchPress", set_number: 1, weight_kg: 22.5, reps: 8 }];
+  `);
+  const game = JSON.parse(JSON.stringify(run(`(() => { const g = gameState(); return { xp: g.lifetimeXp, level: g.level, badges: g.badges.filter((b) => b.earned).map((b) => b.id) }; })()`)));
+  // Yesterday: 3 meals (60) + 1 habit (10) + 1 set (5). Today: 1 set (5).
+  assert.equal(game.xp, 80);
+  assert.ok(game.badges.includes("first-meal"));
+  assert.ok(game.badges.includes("full-plate"));
+  assert.ok(game.badges.includes("high-score"), "22.5 kg beats yesterday's 20 kg");
+  assert.ok(!game.badges.includes("first-workout"));
+  assert.equal(run(`bestWeightFor("benchPress")`), 22.5);
+
+  run(`ui.activeTab = "dashboard"; render();`);
+  assert.match(appNode.innerHTML, /class="next-quest"/, "Today opens with one next step");
+  assert.match(appNode.innerHTML, /WEEKLY BOSS/);
+  assert.doesNotMatch(appNode.innerHTML, /workout-goal/, "the workout is no longer repeated as a habit tile");
+  assert.doesNotMatch(appNode.innerHTML, /of 3 logged/, "the meal count isn't repeated in the ring");
+  run(`ui.activeTab = "profile"; render();`);
+  assert.match(appNode.innerHTML, /PLAYER LEVEL/);
+  assert.match(appNode.innerHTML, /Your collection/);
+  assert.match(appNode.innerHTML, /class="level-chip"/);
+  assert.match(appNode.innerHTML, /Give your buddy a name/, "Me offers to name the Spotter");
+  run(`AUTH.user.user_metadata = { spotter_name: "Bean" }; render();`);
+  assert.match(appNode.innerHTML, /Bean · tap to rename/);
+
+  // A quest with no weight goal still renders.
+  run(`DB.goal.start_weight = null; DB.goal.goal_weight = null; render(); ui.activeTab = "progress"; render();`);
+  assert.doesNotMatch(appNode.innerHTML, /null kg|undefined/);
 }
 
 Promise.resolve()
   .then(testSignedInApp)
+  .then(testGameLayer)
   .then(testMealPersistence)
   .then(testAuthScreens)
   .then(() => console.log("UI render checks passed."))

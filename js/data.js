@@ -164,7 +164,7 @@ const PEAK_WORKOUT_WEEK = [
     { exerciseId: "gentleWalk", sets: 1, reps: "20min", rest: "-" },
   ], note: "Switch to carb-refill meals from today." },
   { day: "Day 7", focus: "Peak Day", type: "rest", color: "var(--green)", ex: [],
-    note: "You're peaked. Enjoy it. ✈️" },
+    note: "Final level. You did the work. Go enjoy it. ✈️" },
 ];
 
 // ---------- diet templates ----------
@@ -218,37 +218,38 @@ const PLAN_TEMPLATES = {
 function dietForDay(dayType) { return dayType === "rest" ? restMeals : trainingMeals; }
 
 // ---------- habits ----------
+// Labels are what people read; ids are stored in habit_logs, so never rename an id.
 const habitDefs = [
-  { id: "protein", label: "120g protein", icon: "🍗" },
-  { id: "water", label: "Water target", icon: "💧" },
-  { id: "sleep", label: "7+ hrs sleep", icon: "😴" },
-  { id: "steps", label: "8,000+ steps", icon: "👟" },
-  { id: "nosnack", label: "No unplanned snacking", icon: "🙅" },
+  { id: "protein", label: "Hit 120g protein", icon: "🍗" },
+  { id: "water", label: "Drink your water", icon: "💧" },
+  { id: "sleep", label: "Sleep 7+ hours", icon: "😴" },
+  { id: "steps", label: "Walk 8,000 steps", icon: "👟" },
+  { id: "nosnack", label: "Snacks I planned", icon: "🍎" },
 ];
 
 // ---------- guide ----------
 const guideSections = [
-  { title: "The 120g Protein Playbook", color: "var(--red)", items: [
-    "1 scoop whey = ~25g. Two shakes covers 50g easily.",
-    "Palm of chicken/fish = ~30g. Two palms a day = 60g.",
-    "3 eggs = ~18g. Greek yogurt tub = ~15g.",
-    "Hit 120g and everything else gets easier."]},
-  { title: "Malaysian Eating (in a deficit)", color: "var(--orange)", items: [
-    "Chicken rice — breast, no skin, half rice",
-    "Yong tau foo — soup, load tofu/egg/veg, skip fried",
-    "Economy rice — steamed fish + egg + veg + small rice",
-    "Nasi campur — protein-heavy, ulam, sambal sikit",
-    "Avoid: teh tarik, fried sides, kuih — liquid & hidden cals"]},
-  { title: "Peak Week (final 7 days)", color: "var(--green)", items: [
-    "Days 1-5: lower carb, water 3L+, training light",
-    "Days 6-7: carbs UP, cut added salt/soy, water normal",
-    "This makes muscles full & drops water bloat",
-    "Cosmetic, not fat loss — don't fear the scale",
-    "You'll look tightest on departure day"]},
-  { title: "If you stall", color: "var(--purple)", items: [
-    "First: are you actually hitting 120g protein daily?",
-    "Second: sleeping 7+ hrs? This blocks fat loss.",
-    "Third: steps under 8k? Add a daily walk.",
-    "Don't cut calories lower — you'll lose muscle. Fix above first.",
-    "3 months stuck = worth seeing a dietitian for the real cause."]},
+  { title: "Power-up 1: Protein, 120g a day", color: "var(--red)", items: [
+    "1 scoop of whey is about 25g. Two shakes get you to 50g.",
+    "A palm of chicken or fish is about 30g. Two palms a day is 60g.",
+    "3 eggs are about 18g. A tub of Greek yogurt is about 15g.",
+    "Hit 120g and the rest of the day gets easier."]},
+  { title: "Power-up 2: Eating out in Malaysia", color: "var(--orange)", items: [
+    "Chicken rice: breast, skin off, half rice",
+    "Yong tau foo: soup, load up on tofu, egg and veg",
+    "Economy rice: steamed fish, egg, veg and a small scoop of rice",
+    "Nasi campur: pick protein first, add ulam, sambal sikit",
+    "Teh tarik and kuih are treats, not meals. Enjoy them on purpose."]},
+  { title: "Power-up 3: Peak week, the final 7 days", color: "var(--green)", items: [
+    "Days 1-5: fewer carbs, 3L+ of water, lighter training",
+    "Days 6-7: carbs back up, less added salt and soy, normal water",
+    "This fills your muscles and drops water puffiness",
+    "It's water, not fat. The scale will bounce, and that's fine.",
+    "You'll feel your strongest on the day you fly"]},
+  { title: "Power-up 4: Feeling stuck?", color: "var(--purple)", items: [
+    "First check: are you really hitting 120g protein most days?",
+    "Second: are you sleeping 7+ hours? Short sleep stalls progress.",
+    "Third: under 8,000 steps? Add one daily walk.",
+    "Don't eat less to break a stall. You'll lose muscle. Fix the three above first.",
+    "Stuck for 3 months? A dietitian can find the real cause."]},
 ];

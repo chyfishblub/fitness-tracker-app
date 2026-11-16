@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Five character style directions</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=DM+Sans:wght@400&display=swap">
+<style>
+body{margin:0}
+a{color:#31485C}a:hover{color:#1F2E3C}
+.veil{background:rgba(255,255,255,.38);border:1px solid rgba(255,255,255,.59);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.micro{font-family:Archivo,sans-serif;font-weight:600;font-size:10px;line-height:1.2;letter-spacing:1.8px;text-transform:uppercase}
+.body-copy{font-family:'DM Sans',Arial,sans-serif;font-weight:400}
+.ui{font-family:Archivo,sans-serif}
+.lab{font-family:Archivo,sans-serif;font-weight:600;font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:#5E8FA3}
+.col{border-radius:16px;background:#FFFFFF;border:1px solid rgba(49,72,92,.12);padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.stage{height:200px;border-radius:12px;background:linear-gradient(180deg,#8FB8D6 0%,#79A8BC 100%);display:flex;align-items:flex-end;justify-content:center;position:relative;padding-bottom:14px;box-sizing:border-box}
+.perch{position:absolute;top:10px;right:10px;width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center}
+.notes{margin:0;padding-left:16px;font-family:'DM Sans',Arial,sans-serif;font-size:12.5px;line-height:1.45;color:#1F2E3C;display:flex;flex-direction:column;gap:5px}
+.notes b{font-family:Archivo,sans-serif;font-weight:700;font-size:11px;letter-spacing:.6px;color:#31485C}
+</style>
+</helmet>
+<div style="width:1280px;height:700px;box-sizing:border-box;padding:36px 48px;background:#F3F5F7;color:#1F2E3C;font-family:Archivo,sans-serif;display:flex;flex-direction:column;gap:18px;overflow:hidden">
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <span class="micro" style="color:#5E8FA3">Pocket Spotter · five style directions · from docs/references/character-styles</span>
+      <h1 class="ui" style="margin:0;font-size:26px;font-weight:800;letter-spacing:-0.5px">Same palette, five different creatures.</h1>
+    </div>
+    <p class="body-copy" style="margin:0;font-size:13px;line-height:1.45;color:#31485C;max-width:520px;text-align:right">Every direction uses only the six Elemental solids, Dusk, Ink and Cloud, and sits on a veil surface in the app. Each stage shows the builder-size body and the 44 px perch head.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(5, minmax(0, 1fr));gap:16px;flex-grow:1;min-height:0">
+
+    <div class="col">
+      <div class="stage">
+        <svg viewBox="0 0 100 120" width="100" height="120" role="img" aria-label="Grain blob: lavender asymmetric blob with stippled base and big ringed eyes" style="display:block">
+          <defs><pattern id="gA" width="4" height="4" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="#31485C"/></pattern><clipPath id="cA"><path d="M50 10 C74 6 90 26 86 50 C96 70 82 98 58 106 C40 112 18 102 12 80 C4 60 14 34 30 20 C36 14 42 12 50 10Z"/></clipPath></defs>
+          <path d="M50 10 C74 6 90 26 86 50 C96 70 82 98 58 106 C40 112 18 102 12 80 C4 60 14 34 30 20 C36 14 42 12 50 10Z" fill="#A7A9DB"/>
+          <rect x="0" y="72" width="100" height="50" fill="url(#gA)" clip-path="url(#cA)" opacity=".35"/>
+          <rect x="0" y="88" width="100" height="40" fill="url(#gA)" clip-path="url(#cA)" opacity=".45"/>
+          <circle cx="38" cy="50" r="10" fill="#F3F5F7"/><circle cx="64" cy="50" r="10" fill="#F3F5F7"/>
+          <circle cx="40" cy="51" r="4.5" fill="#1F2E3C"/><circle cx="66" cy="51" r="4.5" fill="#1F2E3C"/>
+          <path d="M46 67 Q51 71 56 67" stroke="#1F2E3C" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+        </svg>
+        <span class="veil perch"><svg viewBox="0 0 44 44" width="36" height="36" aria-hidden="true"><path d="M22 7 C32 5 38 13 37 22 C40 30 34 38 24 39 C15 41 7 35 7 26 C6 17 12 10 22 7Z" fill="#A7A9DB"/><circle cx="17" cy="21" r="4" fill="#F3F5F7"/><circle cx="28" cy="21" r="4" fill="#F3F5F7"/><circle cx="18" cy="21.5" r="1.8" fill="#1F2E3C"/><circle cx="29" cy="21.5" r="1.8" fill="#1F2E3C"/></svg></span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px"><span class="ui" style="font-size:16px;font-weight:800;letter-spacing:-0.2px">A · Grain Blob</span><span class="lab">Lineage · ref 01</span></div>
+      <ul class="notes">
+        <li><b>BUILD</b> silhouette (blob, arch, burst, squircle) × eye size × grain density. No limbs to pick.</li>
+        <li><b>DEMO</b> squash, stretch and tilt only; form cues do the teaching.</li>
+        <li><b>FIT</b> the stipple echoes the veil blur; any solid reads on any gradient.</li>
+        <li><b>RISK</b> reads as a sticker, not a trainer; weakest for the 51 demo loops.</li>
+      </ul>
+    </div>
+
+    <div class="col">
+      <div class="stage">
+        <svg viewBox="0 0 100 120" width="100" height="120" role="img" aria-label="Gym object: a teal kettlebell with a face and two little legs" style="display:block">
+          <path d="M32 42 C32 14 68 14 68 42" stroke="#31485C" stroke-width="9" fill="none" stroke-linecap="round"/>
+          <circle cx="50" cy="68" r="33" fill="#5E8FA3"/>
+          <ellipse cx="42" cy="62" rx="6" ry="7" fill="#F3F5F7"/><ellipse cx="58" cy="62" rx="6" ry="7" fill="#F3F5F7"/>
+          <circle cx="43" cy="63" r="3" fill="#1F2E3C"/><circle cx="59" cy="63" r="3" fill="#1F2E3C"/>
+          <path d="M40 76 Q50 86 60 76" stroke="#1F2E3C" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+          <path d="M40 100 V110 M60 100 V110" stroke="#1F2E3C" stroke-width="3" stroke-linecap="round"/>
+          <path d="M28 113 C32 106 44 106 46 113 Z" fill="#1F2E3C"/><path d="M54 113 C56 106 68 106 72 113 Z" fill="#1F2E3C"/>
+        </svg>
+        <span class="veil perch"><svg viewBox="0 0 44 44" width="36" height="36" aria-hidden="true"><path d="M15 16 C15 6 29 6 29 16" stroke="#31485C" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="22" cy="25" r="12" fill="#5E8FA3"/><ellipse cx="18.5" cy="23" rx="2.4" ry="2.8" fill="#F3F5F7"/><ellipse cx="25.5" cy="23" rx="2.4" ry="2.8" fill="#F3F5F7"/><circle cx="19" cy="23.5" r="1.2" fill="#1F2E3C"/><circle cx="26" cy="23.5" r="1.2" fill="#1F2E3C"/><path d="M18 29 Q22 32.5 26 29" stroke="#1F2E3C" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg></span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px"><span class="ui" style="font-size:16px;font-weight:800;letter-spacing:-0.2px">B · Gym Object</span><span class="lab">Lineage · ref 02 Fukuda</span></div>
+      <ul class="notes">
+        <li><b>BUILD</b> object (kettlebell, bottle, foam roller, plate, yoga block) × face × leg style.</li>
+        <li><b>DEMO</b> legs walk and hop; no arms, so upper-body demos pair it with a drawn bar or cable.</li>
+        <li><b>FIT</b> two-tone body plus Dusk with a mid-century cut-paper feel.</li>
+        <li><b>RISK</b> can read as a shop mascot; the object choice carries a lot of meaning.</li>
+      </ul>
+    </div>
+
+    <div class="col">
+      <div class="stage">
+        <svg viewBox="0 0 110 120" width="110" height="120" role="img" aria-label="Soft geo buddy: a periwinkle arch with stubby arms holding a small dumbbell" style="display:block">
+          <path d="M22 76 L8 70" stroke="#96A8D2" stroke-width="9" stroke-linecap="round"/>
+          <path d="M88 76 L100 66" stroke="#96A8D2" stroke-width="9" stroke-linecap="round"/>
+          <rect x="88" y="60" width="22" height="4" rx="2" fill="#31485C" transform="rotate(-20 99 62)"/>
+          <rect x="86" y="56" width="5" height="12" rx="2" fill="#31485C" transform="rotate(-20 99 62)"/><rect x="107" y="56" width="5" height="12" rx="2" fill="#31485C" transform="rotate(-20 99 62)"/>
+          <path d="M22 110 V58 C22 30 88 30 88 58 V110 Z" fill="#96A8D2"/>
+          <ellipse cx="36" cy="112" rx="9" ry="4" fill="#31485C"/><ellipse cx="74" cy="112" rx="9" ry="4" fill="#31485C"/>
+          <circle cx="42" cy="62" r="6.5" fill="#F3F5F7"/><circle cx="68" cy="62" r="6.5" fill="#F3F5F7"/>
+          <circle cx="43" cy="63" r="3" fill="#1F2E3C"/><circle cx="69" cy="63" r="3" fill="#1F2E3C"/>
+          <path d="M48 75 Q55 81 62 75" stroke="#1F2E3C" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+          <circle cx="33" cy="73" r="3" fill="#B18E9E" opacity=".7"/><circle cx="77" cy="73" r="3" fill="#B18E9E" opacity=".7"/>
+        </svg>
+        <span class="veil perch"><svg viewBox="0 0 44 44" width="36" height="36" aria-hidden="true"><path d="M9 38 V22 C9 8 35 8 35 22 V38 Z" fill="#96A8D2"/><circle cx="17" cy="22" r="3.2" fill="#F3F5F7"/><circle cx="27" cy="22" r="3.2" fill="#F3F5F7"/><circle cx="17.5" cy="22.5" r="1.5" fill="#1F2E3C"/><circle cx="27.5" cy="22.5" r="1.5" fill="#1F2E3C"/><path d="M19 29 Q22 31.5 25 29" stroke="#1F2E3C" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg></span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px"><span class="ui" style="font-size:16px;font-weight:800;letter-spacing:-0.2px">C · Soft Geo Buddy</span><span class="lab">Lineage · ref 03 + current Juno</span></div>
+      <ul class="notes">
+        <li><b>BUILD</b> primitive (arch, squircle, cloud, quarter-circle) × face × held prop.</li>
+        <li><b>DEMO</b> stubby arms hold a dumbbell or band; good for presses and raises, poor for hinges and legs.</li>
+        <li><b>FIT</b> closest to the boards already on this canvas; props carry equipment meaning.</li>
+        <li><b>RISK</b> the generic "app mascot" look; needs the grain or a prop to feel specific.</li>
+      </ul>
+    </div>
+
+    <div class="col" style="border:2px solid #31485C">
+      <div class="stage">
+        <svg viewBox="0 0 100 120" width="100" height="120" role="img" aria-label="Bean and sticks, chosen, wearing a dusk tank top: a seafoam bean body with thin ink limbs, arms raised on a pulldown bar" style="display:block">
+          <path d="M50 0 V9" stroke="#31485C" stroke-width="2.2" stroke-linecap="round"/>
+          <rect x="12" y="8" width="76" height="5" rx="2.5" fill="#31485C"/>
+          <path d="M28 50 L18 14 M72 50 L82 14" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+          <circle cx="18" cy="14" r="3.6" fill="#F3F5F7" stroke="#1F2E3C" stroke-width="1.6"/><circle cx="82" cy="14" r="3.6" fill="#F3F5F7" stroke="#1F2E3C" stroke-width="1.6"/>
+          <path d="M50 22 C32 22 26 36 26 54 V78 C26 96 36 106 50 106 C64 106 74 96 74 78 V54 C74 36 68 22 50 22Z" fill="#7FAEBB"/>
+          <path fill-rule="evenodd" d="M27 68 V78 C27 96 37 106 50 106 C63 106 73 96 73 78 V68 Z M38 68 C40 80 60 80 62 68 Z" fill="#31485C"/>
+          <path d="M28 40 Q50 32 72 40" stroke="#F3F5F7" stroke-width="5" stroke-linecap="round" fill="none"/>
+          <circle cx="42" cy="54" r="2.9" fill="#1F2E3C"/><circle cx="58" cy="54" r="2.9" fill="#1F2E3C"/>
+          <path d="M46 64 L54 64" stroke="#1F2E3C" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M42 106 V118 M58 106 V118" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/>
+          <path d="M36 118 H46 M54 118 H64" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/>
+        </svg>
+        <span class="veil perch"><svg viewBox="0 0 44 44" width="36" height="36" aria-hidden="true"><path d="M22 7 C13 7 10 14 10 22 V28 C10 36 15 39 22 39 C29 39 34 36 34 28 V22 C34 14 31 7 22 7Z" fill="#7FAEBB"/><path fill-rule="evenodd" d="M10.3 30 C11 36 16 39 22 39 C28 39 33 36 33.7 30 Z M15 30 C16.5 34.5 27.5 34.5 29 30 Z" fill="#31485C"/><path d="M12 16 Q22 12 32 16" stroke="#F3F5F7" stroke-width="2.8" stroke-linecap="round" fill="none"/><circle cx="18" cy="22" r="1.7" fill="#1F2E3C"/><circle cx="26" cy="22" r="1.7" fill="#1F2E3C"/><path d="M19 28 Q22 30.5 25 28" stroke="#1F2E3C" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg></span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px"><span style="display:flex;align-items:center;gap:8px"><span class="ui" style="font-size:16px;font-weight:800;letter-spacing:-0.2px">D · Bean &amp; Sticks</span><span class="micro" style="padding:4px 8px;border-radius:10px;background:#31485C;color:#F3F5F7">Chosen · + tank</span></span><span class="lab">Lineage · ref 04</span></div>
+      <ul class="notes">
+        <li><b>BUILD</b> bean proportion (tall, round, squat) × face × accessory (headband, cap, bands).</li>
+        <li><b>DEMO</b> full articulation. Four line limbs, two keyframes each: the 51 loops get cheap.</li>
+        <li><b>FIT</b> one Elemental solid plus Ink lines at the icon set's stroke weight.</li>
+        <li><b>RISK</b> the Dumb Ways to Die association; keep limbs heavier and bodies calmer.</li>
+      </ul>
+    </div>
+
+    <div class="col">
+      <div class="stage">
+        <svg viewBox="0 0 100 120" width="100" height="120" role="img" aria-label="Gradient spirit: a translucent blob filled with the dawn-to-day gradient, eyes only" style="display:block">
+          <defs><linearGradient id="gE" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A7A9DB"/><stop offset=".55" stop-color="#8FB8D6"/><stop offset="1" stop-color="#5E8FA3"/></linearGradient><pattern id="pE" width="4" height="4" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="#F3F5F7"/></pattern><clipPath id="cE"><path d="M50 8 C76 8 92 30 90 56 C88 84 72 110 50 110 C28 110 12 84 10 56 C8 30 24 8 50 8Z"/></clipPath></defs>
+          <path d="M50 8 C76 8 92 30 90 56 C88 84 72 110 50 110 C28 110 12 84 10 56 C8 30 24 8 50 8Z" fill="url(#gE)"/>
+          <rect x="0" y="78" width="100" height="40" fill="url(#pE)" clip-path="url(#cE)" opacity=".5"/>
+          <path d="M50 8 C76 8 92 30 90 56 C88 84 72 110 50 110 C28 110 12 84 10 56 C8 30 24 8 50 8Z" fill="none" stroke="#F3F5F7" stroke-width="1.6" opacity=".7"/>
+          <ellipse cx="39" cy="52" rx="7" ry="9" fill="#F3F5F7"/><ellipse cx="61" cy="52" rx="7" ry="9" fill="#F3F5F7"/>
+          <circle cx="40" cy="54" r="3.4" fill="#1F2E3C"/><circle cx="62" cy="54" r="3.4" fill="#1F2E3C"/>
+          <circle cx="50" cy="70" r="2.2" fill="#1F2E3C"/>
+        </svg>
+        <span class="veil perch"><svg viewBox="0 0 44 44" width="36" height="36" aria-hidden="true"><defs><linearGradient id="gEp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A7A9DB"/><stop offset="1" stop-color="#5E8FA3"/></linearGradient></defs><path d="M22 6 C33 6 38 15 37 25 C36 34 30 39 22 39 C14 39 8 34 7 25 C6 15 11 6 22 6Z" fill="url(#gEp)" stroke="#F3F5F7" stroke-width="1"/><ellipse cx="17.5" cy="22" rx="3" ry="3.8" fill="#F3F5F7"/><ellipse cx="26.5" cy="22" rx="3" ry="3.8" fill="#F3F5F7"/><circle cx="18" cy="23" r="1.5" fill="#1F2E3C"/><circle cx="27" cy="23" r="1.5" fill="#1F2E3C"/></svg></span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px"><span class="ui" style="font-size:16px;font-weight:800;letter-spacing:-0.2px">E · Gradient Spirit</span><span class="lab">Lineage · ref 01 + the app's own light</span></div>
+      <ul class="notes">
+        <li><b>BUILD</b> silhouette × eye shape × which window it glows with (auto by time of day).</li>
+        <li><b>DEMO</b> no limbs; borrows D's stick limbs only inside the demo sheet.</li>
+        <li><b>FIT</b> the coach is made of dawn, day and dusk: the strongest brand tie on the table.</li>
+        <li><b>RISK</b> vanishes on its own gradient without a veil; reduced-motion must freeze the shift.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":700}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

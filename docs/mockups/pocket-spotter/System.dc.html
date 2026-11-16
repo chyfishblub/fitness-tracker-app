@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pocket Spotter character system</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=DM+Sans:wght@400&display=swap">
+<style>
+body{margin:0}
+a{color:#31485C}a:hover{color:#1F2E3C}
+.veil{background:rgba(255,255,255,.38);border:1px solid rgba(255,255,255,.59);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.micro{font-family:Archivo,sans-serif;font-weight:600;font-size:10px;line-height:1.2;letter-spacing:1.8px;text-transform:uppercase}
+.ctl{font-family:Archivo,sans-serif;font-weight:600;font-size:11px;line-height:1.2;letter-spacing:1.4px;text-transform:uppercase}
+.body-copy{font-family:'DM Sans',Arial,sans-serif;font-weight:400}
+.ui{font-family:Archivo,sans-serif}
+.cell{display:flex;flex-direction:column;align-items:center;gap:6px}
+.lab{font-family:Archivo,sans-serif;font-weight:600;font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:#5E8FA3}
+.card{border-radius:16px;background:#FFFFFF;border:1px solid rgba(49,72,92,.12);padding:16px;display:flex;flex-direction:column;gap:12px}
+svg.ic{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</helmet>
+<div style="width:1280px;height:810px;box-sizing:border-box;padding:40px 48px;background:#F3F5F7;color:#1F2E3C;font-family:Archivo,sans-serif;display:flex;flex-direction:column;gap:24px;overflow:hidden">
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <span class="micro" style="color:#5E8FA3">Pocket Spotter · character system · v2 · Bean &amp; Sticks</span>
+      <h1 class="ui" style="margin:0;font-size:28px;font-weight:800;letter-spacing:-0.5px">3 builds × 3 faces × 3 accessories × 6 colors × 3 tones</h1>
+    </div>
+    <p class="body-copy" style="margin:0;font-size:14px;line-height:1.45;color:#31485C;max-width:500px;text-align:right">A bean body in one Elemental solid, thin Ink stick limbs, and a one-piece Dusk training tank that is always on. Scoop neck, two straps, hem follows the bean. Features Ink, highlights Cloud. Sits on a veil surface in the app.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:24px">
+
+    <div class="card">
+      <span class="lab">Build</span>
+      <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:8px">
+        <div class="cell"><svg viewBox="0 0 100 124" width="54" height="67" role="img" aria-label="Tall build"><path d="M31 62 L19 82 M69 62 L81 82" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M44 110 V120 M56 110 V120 M38 120 H48 M52 120 H62" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M50 6 C34 6 30 22 30 42 V84 C30 100 38 110 50 110 C62 110 70 100 70 84 V42 C70 22 66 6 50 6Z" fill="#7FAEBB"/><path fill-rule="evenodd" d="M31 52 V84 C31 100 39 110 50 110 C61 110 69 100 69 84 V52 Z M39 52 C41 66 59 66 61 52 Z" fill="#31485C"/><circle cx="43" cy="34" r="3.2" fill="#1F2E3C"/><circle cx="57" cy="34" r="3.2" fill="#1F2E3C"/><path d="M45 43 Q50 48 55 43" stroke="#1F2E3C" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg><span class="micro">Tall</span></div>
+        <div class="cell"><svg viewBox="0 0 100 124" width="54" height="67" role="img" aria-label="Round build"><path d="M27 66 L13 84 M73 66 L87 84" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M43 108 V118 M57 108 V118 M37 118 H47 M53 118 H63" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M50 10 C32 10 26 26 26 46 V80 C26 98 36 108 50 108 C64 108 74 98 74 80 V46 C74 26 68 10 50 10Z" fill="#7FAEBB"/><path fill-rule="evenodd" d="M27 52 V80 C27 98 37 108 50 108 C63 108 73 98 73 80 V52 Z M37 52 C39 68 61 68 63 52 Z" fill="#31485C"/><circle cx="41" cy="36" r="3.2" fill="#1F2E3C"/><circle cx="59" cy="36" r="3.2" fill="#1F2E3C"/><path d="M44 46 Q50 51 56 46" stroke="#1F2E3C" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg><span class="micro">Round</span></div>
+        <div class="cell"><svg viewBox="0 0 100 124" width="54" height="67" role="img" aria-label="Squat build"><path d="M22 72 L10 88 M78 72 L90 88" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M41 110 V120 M59 110 V120 M35 120 H45 M55 120 H65" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M50 26 C28 26 20 40 20 60 V84 C20 100 32 110 50 110 C68 110 80 100 80 84 V60 C80 40 72 26 50 26Z" fill="#7FAEBB"/><path fill-rule="evenodd" d="M21 66 V84 C21 100 33 110 50 110 C67 110 79 100 79 84 V66 Z M35 66 C37 80 63 80 65 66 Z" fill="#31485C"/><circle cx="40" cy="47" r="3.2" fill="#1F2E3C"/><circle cx="60" cy="47" r="3.2" fill="#1F2E3C"/><path d="M44 56 Q50 61 56 56" stroke="#1F2E3C" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg><span class="micro">Squat</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="lab">Face</span>
+      <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:8px">
+        <div class="cell"><svg viewBox="0 0 100 124" width="54" height="67" role="img" aria-label="Dot face"><path d="M27 66 L13 84 M73 66 L87 84" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M43 108 V118 M57 108 V118 M37 118 H47 M53 118 H63" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M50 10 C32 10 26 26 26 46 V80 C26 98 36 108 50 108 C64 108 74 98 74 80 V46 C74 26 68 10 50 10Z" fill="#7FAEBB"/><path fill-rule="evenodd" d="M27 52 V80 C27 98 37 108 50 108 C63 108 73 98 73 80 V52 Z M37 52 C39 68 61 68 63 52 Z" fill="#31485C"/><circle cx="41" cy="36" r="3.2" fill="#1F2E3C"/><circle cx="59" cy="36" r="3.2" fill="#1F2E3C"/><path d="M44 46 Q50 51 56 46" stroke="#1F2E3C" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg><span class="micro">Dot</span></div>
+        <div class="cell"><svg viewBox="0 0 100 124" width="54" height="67" role="img" aria-label="Arc face, closed happy eyes"><path d="M27 66 L13 84 M73 66 L87 84" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M43 108 V118 M57 108 V118 M37 118 H47 M53 118 H63" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M50 10 C32 10 26 26 26 46 V80 C26 98 36 108 50 108 C64 108 74 98 74 80 V46 C74 26 68 10 50 10Z" fill="#7FAEBB"/><path fill-rule="evenodd" d="M27 52 V80 C27 98 37 108 50 108 C63 108 73 98 73 80 V52 Z M37 52 C39 68 61 68 63 52 Z" fill="#31485C"/><path d="M37 37 Q41 32 45 37 M55 37 Q59 32 63 37" stroke="#1F2E3C" stroke-width="2.4" stroke-linecap="round" fill="none"/><path d="M44 46 Q50 51 56 46" stroke="#1F2E3C" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg><span class="micro">Arc</span></div>
+        <div class="cell"><svg viewBox="0 0 100 124" width="54" height="67" role="img" aria-label="Visor face"><path d="M27 66 L13 84 M73 66 L87 84" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M43 108 V118 M57 108 V118 M37 118 H47 M53 118 H63" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M50 10 C32 10 26 26 26 46 V80 C26 98 36 108 50 108 C64 108 74 98 74 80 V46 C74 26 68 10 50 10Z" fill="#7FAEBB"/><path fill-rule="evenodd" d="M27 52 V80 C27 98 37 108 50 108 C63 108 73 98 73 80 V52 Z M37 52 C39 68 61 68 63 52 Z" fill="#31485C"/><rect x="33" y="30" width="34" height="11" rx="5.5" fill="#1F2E3C"/><circle cx="42" cy="35.5" r="2" fill="#F3F5F7"/><circle cx="58" cy="35.5" r="2" fill="#F3F5F7"/><path d="M45 47 L55 47" stroke="#1F2E3C" stroke-width="2.4" stroke-linecap="round"/></svg><span class="micro">Visor</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="lab">Accessory</span>
+      <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:8px">
+        <div class="cell"><svg viewBox="0 0 100 124" width="54" height="67" role="img" aria-label="Headband"><path d="M27 66 L13 84 M73 66 L87 84" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M43 108 V118 M57 108 V118 M37 118 H47 M53 118 H63" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M50 10 C32 10 26 26 26 46 V80 C26 98 36 108 50 108 C64 108 74 98 74 80 V46 C74 26 68 10 50 10Z" fill="#7FAEBB"/><path fill-rule="evenodd" d="M27 52 V80 C27 98 37 108 50 108 C63 108 73 98 73 80 V52 Z M37 52 C39 68 61 68 63 52 Z" fill="#31485C"/><path d="M29 24 Q50 15 71 24" stroke="#F3F5F7" stroke-width="5" stroke-linecap="round" fill="none"/><circle cx="41" cy="36" r="3.2" fill="#1F2E3C"/><circle cx="59" cy="36" r="3.2" fill="#1F2E3C"/><path d="M44 46 Q50 51 56 46" stroke="#1F2E3C" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg><span class="micro">Headband</span></div>
+        <div class="cell"><svg viewBox="0 0 100 124" width="54" height="67" role="img" aria-label="Cap"><path d="M27 66 L13 84 M73 66 L87 84" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M43 108 V118 M57 108 V118 M37 118 H47 M53 118 H63" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M50 10 C32 10 26 26 26 46 V80 C26 98 36 108 50 108 C64 108 74 98 74 80 V46 C74 26 68 10 50 10Z" fill="#7FAEBB"/><path fill-rule="evenodd" d="M27 52 V80 C27 98 37 108 50 108 C63 108 73 98 73 80 V52 Z M37 52 C39 68 61 68 63 52 Z" fill="#31485C"/><path d="M30 26 A20 18 0 0 1 70 26 Z" fill="#F3F5F7" stroke="#1F2E3C" stroke-width="1.5" stroke-linejoin="round"/><rect x="18" y="23.5" width="38" height="5" rx="2.5" fill="#F3F5F7" stroke="#1F2E3C" stroke-width="1.5"/><circle cx="41" cy="37" r="3.2" fill="#1F2E3C"/><circle cx="59" cy="37" r="3.2" fill="#1F2E3C"/><path d="M44 47 Q50 52 56 47" stroke="#1F2E3C" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg><span class="micro">Cap</span></div>
+        <div class="cell"><svg viewBox="0 0 100 124" width="54" height="67" role="img" aria-label="Wristbands"><path d="M27 66 L13 84 M73 66 L87 84" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M17.2 78.6 L15.4 80.9 M82.8 78.6 L84.6 80.9" stroke="#1F2E3C" stroke-width="8.5" stroke-linecap="round"/><path d="M17.2 78.6 L15.4 80.9 M82.8 78.6 L84.6 80.9" stroke="#F3F5F7" stroke-width="5.5" stroke-linecap="round"/><path d="M43 108 V118 M57 108 V118 M37 118 H47 M53 118 H63" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M50 10 C32 10 26 26 26 46 V80 C26 98 36 108 50 108 C64 108 74 98 74 80 V46 C74 26 68 10 50 10Z" fill="#7FAEBB"/><path fill-rule="evenodd" d="M27 52 V80 C27 98 37 108 50 108 C63 108 73 98 73 80 V52 Z M37 52 C39 68 61 68 63 52 Z" fill="#31485C"/><circle cx="41" cy="36" r="3.2" fill="#1F2E3C"/><circle cx="59" cy="36" r="3.2" fill="#1F2E3C"/><path d="M44 46 Q50 51 56 46" stroke="#1F2E3C" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg><span class="micro">Wristbands</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="lab">Color · body only · tank is always Dusk</span>
+      <div style="display:grid;grid-template-columns:repeat(6, minmax(0, 1fr));gap:4px">
+        <div class="cell"><svg viewBox="0 0 44 44" width="34" height="34" role="img" aria-label="Lavender"><path d="M22 7 C13 7 10 14 10 22 V28 C10 36 15 39 22 39 C29 39 34 36 34 28 V22 C34 14 31 7 22 7Z" fill="#A7A9DB"/><path fill-rule="evenodd" d="M10.3 30 C11 36 16 39 22 39 C28 39 33 36 33.7 30 Z M15 30 C16.5 34.5 27.5 34.5 29 30 Z" fill="#31485C"/><circle cx="18" cy="21" r="1.8" fill="#1F2E3C"/><circle cx="26" cy="21" r="1.8" fill="#1F2E3C"/><path d="M19 26.5 Q22 29 25 26.5" stroke="#1F2E3C" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg><span class="micro" style="font-size:8px;letter-spacing:1px">A7A9DB</span></div>
+        <div class="cell"><svg viewBox="0 0 44 44" width="34" height="34" role="img" aria-label="Periwinkle"><path d="M22 7 C13 7 10 14 10 22 V28 C10 36 15 39 22 39 C29 39 34 36 34 28 V22 C34 14 31 7 22 7Z" fill="#96A8D2"/><path fill-rule="evenodd" d="M10.3 30 C11 36 16 39 22 39 C28 39 33 36 33.7 30 Z M15 30 C16.5 34.5 27.5 34.5 29 30 Z" fill="#31485C"/><circle cx="18" cy="21" r="1.8" fill="#1F2E3C"/><circle cx="26" cy="21" r="1.8" fill="#1F2E3C"/><path d="M19 26.5 Q22 29 25 26.5" stroke="#1F2E3C" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg><span class="micro" style="font-size:8px;letter-spacing:1px">96A8D2</span></div>
+        <div class="cell"><svg viewBox="0 0 44 44" width="34" height="34" role="img" aria-label="Sky"><path d="M22 7 C13 7 10 14 10 22 V28 C10 36 15 39 22 39 C29 39 34 36 34 28 V22 C34 14 31 7 22 7Z" fill="#8FB8D6"/><path fill-rule="evenodd" d="M10.3 30 C11 36 16 39 22 39 C28 39 33 36 33.7 30 Z M15 30 C16.5 34.5 27.5 34.5 29 30 Z" fill="#31485C"/><circle cx="18" cy="21" r="1.8" fill="#1F2E3C"/><circle cx="26" cy="21" r="1.8" fill="#1F2E3C"/><path d="M19 26.5 Q22 29 25 26.5" stroke="#1F2E3C" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg><span class="micro" style="font-size:8px;letter-spacing:1px">8FB8D6</span></div>
+        <div class="cell"><svg viewBox="0 0 44 44" width="34" height="34" role="img" aria-label="Seafoam, default"><path d="M22 7 C13 7 10 14 10 22 V28 C10 36 15 39 22 39 C29 39 34 36 34 28 V22 C34 14 31 7 22 7Z" fill="#7FAEBB"/><path fill-rule="evenodd" d="M10.3 30 C11 36 16 39 22 39 C28 39 33 36 33.7 30 Z M15 30 C16.5 34.5 27.5 34.5 29 30 Z" fill="#31485C"/><circle cx="18" cy="21" r="1.8" fill="#1F2E3C"/><circle cx="26" cy="21" r="1.8" fill="#1F2E3C"/><path d="M19 26.5 Q22 29 25 26.5" stroke="#1F2E3C" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg><span class="micro" style="font-size:8px;letter-spacing:1px">7FAEBB</span></div>
+        <div class="cell"><svg viewBox="0 0 44 44" width="34" height="34" role="img" aria-label="Teal"><path d="M22 7 C13 7 10 14 10 22 V28 C10 36 15 39 22 39 C29 39 34 36 34 28 V22 C34 14 31 7 22 7Z" fill="#5E8FA3"/><path fill-rule="evenodd" d="M10.3 30 C11 36 16 39 22 39 C28 39 33 36 33.7 30 Z M15 30 C16.5 34.5 27.5 34.5 29 30 Z" fill="#31485C"/><circle cx="18" cy="21" r="1.8" fill="#1F2E3C"/><circle cx="26" cy="21" r="1.8" fill="#1F2E3C"/><path d="M19 26.5 Q22 29 25 26.5" stroke="#1F2E3C" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg><span class="micro" style="font-size:8px;letter-spacing:1px">5E8FA3</span></div>
+        <div class="cell"><svg viewBox="0 0 44 44" width="34" height="34" role="img" aria-label="Mauve"><path d="M22 7 C13 7 10 14 10 22 V28 C10 36 15 39 22 39 C29 39 34 36 34 28 V22 C34 14 31 7 22 7Z" fill="#B18E9E"/><path fill-rule="evenodd" d="M10.3 30 C11 36 16 39 22 39 C28 39 33 36 33.7 30 Z M15 30 C16.5 34.5 27.5 34.5 29 30 Z" fill="#31485C"/><circle cx="18" cy="21" r="1.8" fill="#1F2E3C"/><circle cx="26" cy="21" r="1.8" fill="#1F2E3C"/><path d="M19 26.5 Q22 29 25 26.5" stroke="#1F2E3C" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg><span class="micro" style="font-size:8px;letter-spacing:1px">B18E9E</span></div>
+      </div>
+      <span class="lab" style="margin-top:4px">Size ladder</span>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8px">
+        <div class="cell"><svg viewBox="0 0 44 44" width="36" height="36" aria-hidden="true"><path d="M22 7 C13 7 10 14 10 22 V28 C10 36 15 39 22 39 C29 39 34 36 34 28 V22 C34 14 31 7 22 7Z" fill="#7FAEBB"/><path fill-rule="evenodd" d="M10.3 30 C11 36 16 39 22 39 C28 39 33 36 33.7 30 Z M15 30 C16.5 34.5 27.5 34.5 29 30 Z" fill="#31485C"/><circle cx="18" cy="21" r="1.8" fill="#1F2E3C"/><circle cx="26" cy="21" r="1.8" fill="#1F2E3C"/><path d="M19 26.5 Q22 29 25 26.5" stroke="#1F2E3C" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg><span class="micro" style="font-size:8px;letter-spacing:1px">36 · perch</span></div>
+        <div class="cell"><svg viewBox="0 0 44 44" width="48" height="48" aria-hidden="true"><path d="M22 7 C13 7 10 14 10 22 V28 C10 36 15 39 22 39 C29 39 34 36 34 28 V22 C34 14 31 7 22 7Z" fill="#7FAEBB"/><path fill-rule="evenodd" d="M10.3 30 C11 36 16 39 22 39 C28 39 33 36 33.7 30 Z M15 30 C16.5 34.5 27.5 34.5 29 30 Z" fill="#31485C"/><circle cx="18" cy="21" r="1.8" fill="#1F2E3C"/><circle cx="26" cy="21" r="1.8" fill="#1F2E3C"/><path d="M19 26.5 Q22 29 25 26.5" stroke="#1F2E3C" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg><span class="micro" style="font-size:8px;letter-spacing:1px">48 · card</span></div>
+        <div class="cell"><svg viewBox="0 0 100 124" width="52" height="64" aria-hidden="true"><path d="M27 66 L13 84 M73 66 L87 84" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M43 108 V118 M57 108 V118 M37 118 H47 M53 118 H63" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M50 10 C32 10 26 26 26 46 V80 C26 98 36 108 50 108 C64 108 74 98 74 80 V46 C74 26 68 10 50 10Z" fill="#7FAEBB"/><path fill-rule="evenodd" d="M27 52 V80 C27 98 37 108 50 108 C63 108 73 98 73 80 V52 Z M37 52 C39 68 61 68 63 52 Z" fill="#31485C"/><circle cx="41" cy="36" r="3.2" fill="#1F2E3C"/><circle cx="59" cy="36" r="3.2" fill="#1F2E3C"/><path d="M44 46 Q50 51 56 46" stroke="#1F2E3C" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg><span class="micro" style="font-size:8px;letter-spacing:1px">92 · builder</span></div>
+        <div class="cell"><svg viewBox="0 0 100 124" width="66" height="82" aria-hidden="true"><path d="M27 66 L13 84 M73 66 L87 84" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M43 108 V118 M57 108 V118 M37 118 H47 M53 118 H63" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/><path d="M50 10 C32 10 26 26 26 46 V80 C26 98 36 108 50 108 C64 108 74 98 74 80 V46 C74 26 68 10 50 10Z" fill="#7FAEBB"/><path fill-rule="evenodd" d="M27 52 V80 C27 98 37 108 50 108 C63 108 73 98 73 80 V52 Z M37 52 C39 68 61 68 63 52 Z" fill="#31485C"/><circle cx="41" cy="36" r="3.2" fill="#1F2E3C"/><circle cx="59" cy="36" r="3.2" fill="#1F2E3C"/><path d="M44 46 Q50 51 56 46" stroke="#1F2E3C" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg><span class="micro" style="font-size:8px;letter-spacing:1px">150 · demo</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:390px 390px minmax(0, 1fr);gap:24px;flex-grow:1;min-height:0">
+
+    <div style="display:flex;flex-direction:column;gap:10px;min-height:0">
+      <span class="lab">App-bar perch · 44 px · right edge · 20 px margin</span>
+      <div style="border-radius:16px;padding:20px;background:linear-gradient(180deg,#8FB8D6 0%,#79A8BC 100%);display:flex;flex-direction:column;gap:14px;flex-grow:1">
+        <div style="display:flex;align-items:center;justify-content:space-between;height:44px">
+          <span class="micro" style="color:#F3F5F7">Monday · Nov 10</span>
+          <span class="veil" style="width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;position:relative"><svg viewBox="0 0 44 44" width="36" height="36" aria-hidden="true"><path d="M22 7 C13 7 10 14 10 22 V28 C10 36 15 39 22 39 C29 39 34 36 34 28 V22 C34 14 31 7 22 7Z" fill="#7FAEBB"/><path fill-rule="evenodd" d="M10.3 30 C11 36 16 39 22 39 C28 39 33 36 33.7 30 Z M15 30 C16.5 34.5 27.5 34.5 29 30 Z" fill="#31485C"/><path d="M12 14 Q22 10 32 14" stroke="#F3F5F7" stroke-width="2.8" stroke-linecap="round" fill="none"/><circle cx="18" cy="21" r="1.8" fill="#1F2E3C"/><circle cx="26" cy="21" r="1.8" fill="#1F2E3C"/><path d="M19 26.5 Q22 29 25 26.5" stroke="#1F2E3C" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg><span aria-hidden="true" style="position:absolute;top:3px;right:3px;width:10px;height:10px;border-radius:5px;background:#31485C;border:2px solid #F3F5F7;box-sizing:border-box"></span></span>
+        </div>
+        <ul class="body-copy" style="margin:0;padding-left:18px;font-size:13px;line-height:1.5;color:#1F2E3C">
+          <li>Head and tank neckline only at 36 px. Limbs appear from 92 px up.</li>
+          <li>Badge dot 10 px, dusk fill, 2 px cloud ring, top-right. Never a number.</li>
+          <li>Tap opens the latest card inline below the heading. Never a floating overlay.</li>
+          <li>Hidden coach: the perch slot stays empty; the date keeps its position.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;min-height:0">
+      <span class="lab">Inline card footprint · 350 × ≤ 132 · radius 16 · padding 14</span>
+      <div style="border-radius:16px;padding:20px;background:linear-gradient(180deg,#8FB8D6 0%,#79A8BC 100%);display:flex;flex-direction:column;gap:14px;flex-grow:1">
+        <div class="veil" style="border-radius:16px;padding:14px;display:flex;gap:12px;position:relative">
+          <div style="width:56px;height:56px;border-radius:28px;background:rgba(255,255,255,.61);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 44 44" width="48" height="48" aria-hidden="true"><path d="M22 7 C13 7 10 14 10 22 V28 C10 36 15 39 22 39 C29 39 34 36 34 28 V22 C34 14 31 7 22 7Z" fill="#7FAEBB"/><path fill-rule="evenodd" d="M10.3 30 C11 36 16 39 22 39 C28 39 33 36 33.7 30 Z M15 30 C16.5 34.5 27.5 34.5 29 30 Z" fill="#31485C"/><path d="M12 14 Q22 10 32 14" stroke="#F3F5F7" stroke-width="2.8" stroke-linecap="round" fill="none"/><circle cx="18" cy="21" r="1.8" fill="#1F2E3C"/><circle cx="26" cy="21" r="1.8" fill="#1F2E3C"/><path d="M19 26.5 Q22 29 25 26.5" stroke="#1F2E3C" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg></div>
+          <div style="display:flex;flex-direction:column;gap:8px;flex-grow:1;min-width:0;padding-right:28px">
+            <span class="micro" style="color:#31485C">Juno · label slot</span>
+            <p class="body-copy" style="margin:0;font-size:14px;line-height:1.45">Two to three lines of body copy. One sentence of fact, one of encouragement.</p>
+            <span class="ctl" style="align-self:flex-start;height:36px;padding:0 16px;border-radius:18px;background:#31485C;color:#F3F5F7;display:inline-flex;align-items:center">One action</span>
+          </div>
+          <span aria-hidden="true" style="position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:16px;display:flex;align-items:center;justify-content:center;color:#31485C"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+        <ul class="body-copy" style="margin:0;padding-left:18px;font-size:13px;line-height:1.5;color:#1F2E3C">
+          <li>Head on a 56 px veil-bright disc, left. Dismiss 32 px, top-right, always.</li>
+          <li>At most one pill action. No card inside forms, set grids, sheets or nav.</li>
+          <li>Two expanded cards per session; the rest only update the badge.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;min-height:0">
+      <span class="lab">Tone · same event, three voices · lunch logged, 2 of 3</span>
+      <div style="display:flex;flex-direction:column;gap:10px;flex-grow:1">
+        <div style="border-radius:14px;background:#FFFFFF;border:1px solid rgba(49,72,92,.12);padding:12px 14px;display:flex;gap:12px;align-items:flex-start">
+          <svg viewBox="0 0 44 44" width="32" height="32" aria-hidden="true" style="flex-shrink:0"><path d="M22 7 C13 7 10 14 10 22 V28 C10 36 15 39 22 39 C29 39 34 36 34 28 V22 C34 14 31 7 22 7Z" fill="#7FAEBB"/><path fill-rule="evenodd" d="M10.3 30 C11 36 16 39 22 39 C28 39 33 36 33.7 30 Z M15 30 C16.5 34.5 27.5 34.5 29 30 Z" fill="#31485C"/><circle cx="18" cy="21" r="1.8" fill="#1F2E3C"/><circle cx="26" cy="21" r="1.8" fill="#1F2E3C"/><path d="M19 26.5 Q22 29 25 26.5" stroke="#1F2E3C" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+          <div style="display:flex;flex-direction:column;gap:3px"><span class="micro" style="color:#5E8FA3">Steady · calm, even · the fallback</span><p class="body-copy" style="margin:0;font-size:14px;line-height:1.45">Lunch logged. Two of three today. Dinner's window opens at six.</p></div>
+        </div>
+        <div style="border-radius:14px;background:#FFFFFF;border:1px solid rgba(49,72,92,.12);padding:12px 14px;display:flex;gap:12px;align-items:flex-start">
+          <svg viewBox="0 0 44 44" width="32" height="32" aria-hidden="true" style="flex-shrink:0"><path d="M22 7 C13 7 10 14 10 22 V28 C10 36 15 39 22 39 C29 39 34 36 34 28 V22 C34 14 31 7 22 7Z" fill="#B18E9E"/><path fill-rule="evenodd" d="M10.3 30 C11 36 16 39 22 39 C28 39 33 36 33.7 30 Z M15 30 C16.5 34.5 27.5 34.5 29 30 Z" fill="#31485C"/><path d="M15.5 21 Q18 18 20.5 21 M23.5 21 Q26 18 28.5 21" stroke="#1F2E3C" stroke-width="1.5" stroke-linecap="round" fill="none"/><path d="M18.5 26 Q22 30 25.5 26" stroke="#1F2E3C" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+          <div style="display:flex;flex-direction:column;gap:3px"><span class="micro" style="color:#5E8FA3">Spark · upbeat</span><p class="body-copy" style="margin:0;font-size:14px;line-height:1.45">Lunch is in! That's two of three. Dinner at six and you've swept the day.</p></div>
+        </div>
+        <div style="border-radius:14px;background:#FFFFFF;border:1px solid rgba(49,72,92,.12);padding:12px 14px;display:flex;gap:12px;align-items:flex-start">
+          <svg viewBox="0 0 44 44" width="32" height="32" aria-hidden="true" style="flex-shrink:0"><path d="M22 7 C13 7 10 14 10 22 V28 C10 36 15 39 22 39 C29 39 34 36 34 28 V22 C34 14 31 7 22 7Z" fill="#5E8FA3"/><path fill-rule="evenodd" d="M10.3 30 C11 36 16 39 22 39 C28 39 33 36 33.7 30 Z M15 30 C16.5 34.5 27.5 34.5 29 30 Z" fill="#31485C"/><rect x="13.5" y="17.5" width="17" height="6" rx="3" fill="#1F2E3C"/><circle cx="18" cy="20.5" r="1.1" fill="#F3F5F7"/><circle cx="26" cy="20.5" r="1.1" fill="#F3F5F7"/><path d="M19.5 27 H24.5" stroke="#1F2E3C" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <div style="display:flex;flex-direction:column;gap:3px"><span class="micro" style="color:#5E8FA3">Straight-up · brief, direct</span><p class="body-copy" style="margin:0;font-size:14px;line-height:1.45">Lunch logged. 2 of 3. Dinner at 6.</p></div>
+        </div>
+        <p class="body-copy" style="margin:0;font-size:12px;line-height:1.45;color:#31485C">Every template ships in all three tones and falls back to Steady. Dynamic values are trusted app facts only: meals, sets, goal title, dates.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":810}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -485,7 +485,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .auth-hero h1 em { color:var(--green-d); font-style:normal; }
 .auth-hero > p { max-width:370px; margin:12px auto 0; color:var(--grey); font-size:14px; line-height:1.5; text-align:center; }
 .auth-benefits { display:flex; flex-wrap:wrap; justify-content:center; gap:6px; margin-top:16px; }
-.auth-benefits span { padding:6px 9px; border:1px solid #D7E9D0; border-radius:99px; background:rgba(255,255,255,.8); color:#4E6952; font-size:10px; font-weight:800; }
+.auth-benefits > span { padding:6px 9px; border:1px solid #D7E9D0; border-radius:99px; background:rgba(255,255,255,.8); color:#4E6952; font-size:10px; font-weight:800; }
 .auth-card { padding:20px; border:1px solid var(--line); border-radius:22px; background:#fff; box-shadow:0 12px 35px rgba(36,49,41,.10); }
 .auth-kicker { color:var(--green-d); font-size:10px; font-weight:900; letter-spacing:1.4px; }
 .auth-card h2 { margin:3px 0 16px; font-size:21px; font-weight:900; }
@@ -544,3 +544,78 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior:auto !important; animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
 }
+
+/* ---------- Game layer: up next, weekly boss, level, badges (js/game.js) ---------- */
+.goal-line strong { color:var(--ink); font-weight:900; }
+.next-quest {
+  display:flex; align-items:center; gap:12px; width:100%; min-height:78px; padding:13px 13px 13px 12px;
+  border:2px solid var(--green); border-radius:18px; background:#F1FAEA; color:var(--ink);
+  font-family:inherit; text-align:left; cursor:pointer; box-shadow:0 4px 0 var(--green-d);
+}
+.next-quest:active { transform:translateY(2px); box-shadow:0 2px 0 var(--green-d); }
+.next-quest.is-clear { border-color:var(--line); background:var(--surface); box-shadow:none; cursor:default; }
+.next-quest-icon { display:flex; align-items:center; justify-content:center; flex:0 0 auto; width:46px; height:46px; border-radius:14px; background:#fff; font-size:24px; }
+.next-quest-copy { display:flex; flex-direction:column; flex:1; min-width:0; }
+.next-quest-label { color:var(--green-d); font-size:10px; font-weight:900; letter-spacing:1.3px; }
+.next-quest-copy strong { margin-top:2px; font-size:17px; font-weight:900; line-height:1.15; }
+.next-quest-copy small { margin-top:3px; color:var(--grey); font-size:12px; font-weight:700; }
+.next-quest-cta { flex:0 0 auto; padding:9px 12px; border-radius:12px; background:var(--green); color:#fff; font-size:13px; font-weight:900; }
+
+.daily-goal-list { display:flex; flex-direction:column; gap:8px; }
+.daily-goal-list .daily-goal { min-height:52px; padding:8px 12px 8px 8px; }
+.daily-goal-list .daily-goal-label { flex:1; font-size:14px; }
+.daily-goal-list .daily-goal-check { position:static; flex:0 0 auto; width:26px; height:26px; font-size:13px; }
+.daily-goal-xp { flex:0 0 auto; color:var(--orange-d); font-size:12px; font-weight:900; }
+
+.boss-pips { display:flex; gap:8px; margin:14px 0 2px; }
+.boss-pips i { flex:1; height:12px; border-radius:99px; background:#EFEAF5; }
+.boss-pips i.is-hit { background:var(--purple); }
+.week-stars { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; margin-top:14px; }
+.week-star { display:flex; flex-direction:column; align-items:center; gap:4px; }
+.week-star b { display:flex; align-items:center; justify-content:center; width:100%; max-width:40px; aspect-ratio:1; border:2px dashed var(--line); border-radius:12px; font-size:18px; }
+.week-star.is-good b { border:2px solid var(--gold); background:#FFF6D6; }
+.week-star.is-future b { opacity:.5; }
+.week-star small { color:var(--grey); font-size:11px; font-weight:900; }
+.week-star.is-today small { color:var(--ink); text-decoration:underline; text-underline-offset:3px; }
+.week-note { margin-top:12px; color:var(--grey); font-size:13px; font-weight:700; line-height:1.45; }
+
+.level-chip { display:flex; align-items:baseline; gap:3px; min-width:46px; height:36px; padding:8px 10px 0; border:2px solid var(--line); border-radius:12px; background:#fff; color:var(--ink); font-family:inherit; font-size:15px; font-weight:900; cursor:pointer; }
+.level-chip b { color:var(--purple-d); font-size:10px; letter-spacing:.5px; }
+
+.player-level-card, .badge-card { padding:17px; border:1px solid var(--line); border-radius:19px; background:var(--surface); }
+.player-level-card .card-heading > strong, .badge-card .card-heading > strong { padding:6px 8px; border-radius:10px; background:#F3EBFF; color:var(--purple-d); font-size:12px; font-weight:900; white-space:nowrap; }
+.level-bar { height:12px; margin:14px 0 10px; overflow:hidden; border-radius:99px; background:#EFEAF5; }
+.level-bar span { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg, var(--purple), var(--blue)); }
+.player-level-card p { color:var(--grey); font-size:13px; font-weight:700; }
+.badge-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px; }
+.badge { display:flex; flex-direction:column; gap:3px; min-width:0; padding:12px; border:2px dashed var(--line); border-radius:14px; color:var(--grey); }
+.badge.is-earned { border:2px solid var(--gold); background:#FFFBEA; color:var(--ink); }
+.badge-icon { font-size:24px; line-height:1; margin-bottom:4px; }
+.badge:not(.is-earned) .badge-icon { filter:grayscale(1); opacity:.4; }
+.badge strong { font-size:14px; font-weight:900; }
+.badge small { font-size:12px; font-weight:700; line-height:1.3; }
+.badge.is-earned small { color:var(--green-d); }
+
+/* week and day pickers: weeks fill the row, all seven days fit without scrolling */
+.week-picker { gap:8px; overflow-x:auto; padding:2px 0 8px; }
+.week-picker .pill { flex:1 0 56px; padding:10px 6px; font-size:13px; white-space:nowrap; }
+.week-picker.is-scrollable { -webkit-mask-image:linear-gradient(90deg,#000 85%,transparent); mask-image:linear-gradient(90deg,#000 85%,transparent); }
+.day-picker { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:5px; padding-bottom:4px; }
+.day-picker .pill { display:flex; flex-direction:column; align-items:center; gap:1px; min-width:0; padding:7px 0; font-size:11px; }
+.day-picker .pill b { font-size:15px; font-weight:900; }
+
+/* timed moves (walks, holds, circuits): one tick per set, no weight */
+.set-table.is-timed .set-row { grid-template-columns:38px minmax(64px,1fr) 108px 36px; }
+.set-goal { color:var(--ink); font-weight:800; }
+
+/* onboarding: weight is an optional extra */
+.optional-fields { margin-top:16px; padding:12px 14px; border:1px dashed var(--line); border-radius:14px; }
+.optional-fields summary { cursor:pointer; color:var(--ink); font-size:13px; font-weight:900; }
+.optional-fields summary span { margin-left:4px; color:var(--grey); font-weight:600; }
+.optional-fields .two-column-fields { margin-top:12px; }
+.optional-fields .field-help { margin-top:8px; }
+
+/* Spotter naming: starter-name chips under the field */
+.name-chips { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 4px; }
+.name-chip { min-height:36px; padding:6px 14px; border:2px solid var(--line); border-radius:99px; background:#fff; color:var(--ink); font-family:inherit; font-size:13px; font-weight:800; cursor:pointer; }
+.onboarding-fields label[for="obSpotter"] { margin-top:16px; }

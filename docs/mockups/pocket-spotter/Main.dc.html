@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Coach builder — onboarding step 5</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=DM+Sans:wght@400&display=swap">
+<style>
+body{margin:0}
+a{color:#31485C}a:hover{color:#1F2E3C}
+.veil{background:rgba(255,255,255,.38);border:1px solid rgba(255,255,255,.59);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.micro{font-family:Archivo,sans-serif;font-weight:600;font-size:10px;line-height:1.2;letter-spacing:1.8px;text-transform:uppercase}
+.ctl{font-family:Archivo,sans-serif;font-weight:600;font-size:11px;line-height:1.2;letter-spacing:1.4px;text-transform:uppercase}
+.body-copy{font-family:'DM Sans',Arial,sans-serif;font-weight:400}
+.ui{font-family:Archivo,sans-serif}
+button{cursor:pointer}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;padding:28px 20px 32px;display:flex;flex-direction:column;gap:14px;background:linear-gradient(180deg,#A7A9DB 0%,#96A8D2 35%,#8FB8D6 70%,#7FAEBB 100%);color:#1F2E3C;font-family:Archivo,sans-serif;overflow:hidden">
+
+  <div style="display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center">
+    <span class="micro" style="color:#F3F5F7">Step 5 of 6 · under a minute</span>
+    <h1 class="ui" style="margin:0;font-size:26px;line-height:1.1;font-weight:800;letter-spacing:-0.5px;color:#F3F5F7">Build your Pocket Spotter</h1>
+    <p class="body-copy" style="margin:0;font-size:13px;line-height:1.45;color:#F3F5F7;max-width:300px">A mini trainer who lives in your app bar. One build, one face, one accessory, one color, one tone.</p>
+  </div>
+
+  <div class="veil" style="border-radius:16px;height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;position:relative">
+    <svg viewBox="0 0 100 124" width="92" height="114" role="img" aria-label="Live preview of Juno, a seafoam bean in a dusk tank top with a headband" style="display:block">
+      <path d="M27 66 L13 84 M73 66 L87 84" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="13" cy="84" r="3.4" fill="#F3F5F7" stroke="#1F2E3C" stroke-width="1.6"/><circle cx="87" cy="84" r="3.4" fill="#F3F5F7" stroke="#1F2E3C" stroke-width="1.6"/>
+      <path d="M43 108 V118 M57 108 V118 M37 118 H47 M53 118 H63" stroke="#1F2E3C" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M50 10 C32 10 26 26 26 46 V80 C26 98 36 108 50 108 C64 108 74 98 74 80 V46 C74 26 68 10 50 10Z" fill="#7FAEBB"/>
+      <path fill-rule="evenodd" d="M27 52 V80 C27 98 37 108 50 108 C63 108 73 98 73 80 V52 Z M37 52 C39 68 61 68 63 52 Z" fill="#31485C"/>
+      <path d="M29 24 Q50 15 71 24" stroke="#F3F5F7" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <circle cx="41" cy="36" r="3.2" fill="#1F2E3C"/><circle cx="59" cy="36" r="3.2" fill="#1F2E3C"/>
+      <path d="M44 46 Q50 51 56 46" stroke="#1F2E3C" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+      <circle cx="34" cy="44" r="2.6" fill="#F3F5F7" opacity=".55"/><circle cx="66" cy="44" r="2.6" fill="#F3F5F7" opacity=".55"/>
+    </svg>
+    <span class="ui" style="font-size:14px;font-weight:700;letter-spacing:1px">Juno</span>
+    <span class="micro" style="color:#31485C">Steady · Seafoam · Round</span>
+    <span class="micro" style="position:absolute;top:12px;right:14px;color:#31485C">Live preview</span>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <label for="coachName" class="micro" style="color:#F3F5F7">Name</label>
+    <input id="coachName" type="text" value="Juno" class="ui" style="box-sizing:border-box;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.59);background:rgba(255,255,255,.61);padding:0 14px;font-size:15px;font-weight:600;color:#1F2E3C;outline:none">
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span class="micro" style="color:#F3F5F7">Build</span>
+    <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:8px">
+      <button type="button" class="ctl veil" style="height:36px;border-radius:18px;color:#1F2E3C">Tall</button>
+      <button type="button" class="ctl" aria-pressed="true" style="height:36px;border-radius:18px;border:1px solid #31485C;background:#31485C;color:#F3F5F7">Round</button>
+      <button type="button" class="ctl veil" style="height:36px;border-radius:18px;color:#1F2E3C">Squat</button>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span class="micro" style="color:#F3F5F7">Face</span>
+    <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:8px">
+      <button type="button" class="ctl" aria-pressed="true" style="height:36px;border-radius:18px;border:1px solid #31485C;background:#31485C;color:#F3F5F7">Dot</button>
+      <button type="button" class="ctl veil" style="height:36px;border-radius:18px;color:#1F2E3C">Arc</button>
+      <button type="button" class="ctl veil" style="height:36px;border-radius:18px;color:#1F2E3C">Visor</button>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span class="micro" style="color:#F3F5F7">Accessory</span>
+    <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:8px">
+      <button type="button" class="ctl" aria-pressed="true" style="height:36px;border-radius:18px;border:1px solid #31485C;background:#31485C;color:#F3F5F7">Headband</button>
+      <button type="button" class="ctl veil" style="height:36px;border-radius:18px;color:#1F2E3C">Cap</button>
+      <button type="button" class="ctl veil" style="height:36px;border-radius:18px;color:#1F2E3C">Wristbands</button>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span class="micro" style="color:#F3F5F7">Color</span>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <button type="button" aria-label="Lavender" style="width:36px;height:36px;border-radius:18px;border:2px solid rgba(255,255,255,.59);background:#A7A9DB"></button>
+      <button type="button" aria-label="Periwinkle" style="width:36px;height:36px;border-radius:18px;border:2px solid rgba(255,255,255,.59);background:#96A8D2"></button>
+      <button type="button" aria-label="Sky" style="width:36px;height:36px;border-radius:18px;border:2px solid rgba(255,255,255,.59);background:#8FB8D6"></button>
+      <button type="button" aria-label="Seafoam, selected" aria-pressed="true" style="width:36px;height:36px;border-radius:18px;border:3px solid #F3F5F7;box-shadow:0 0 0 2px #31485C;background:#7FAEBB"></button>
+      <button type="button" aria-label="Teal" style="width:36px;height:36px;border-radius:18px;border:2px solid rgba(255,255,255,.59);background:#5E8FA3"></button>
+      <button type="button" aria-label="Mauve" style="width:36px;height:36px;border-radius:18px;border:2px solid rgba(255,255,255,.59);background:#B18E9E"></button>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span class="micro" style="color:#F3F5F7">Tone</span>
+    <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:8px">
+      <button type="button" aria-pressed="true" style="height:50px;border-radius:14px;border:1px solid #31485C;background:#31485C;color:#F3F5F7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:0 6px"><span class="ctl">Steady</span><span class="body-copy" style="font-size:11px;line-height:1.2">calm, even</span></button>
+      <button type="button" class="veil" style="height:50px;border-radius:14px;color:#1F2E3C;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:0 6px"><span class="ctl">Spark</span><span class="body-copy" style="font-size:11px;line-height:1.2">upbeat</span></button>
+      <button type="button" class="veil" style="height:50px;border-radius:14px;color:#1F2E3C;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:0 6px"><span class="ctl">Straight-up</span><span class="body-copy" style="font-size:11px;line-height:1.2">brief, direct</span></button>
+    </div>
+  </div>
+
+  <button type="button" class="ctl" style="margin-top:auto;height:52px;border-radius:26px;border:none;background:#31485C;color:#F3F5F7;font-size:12px">Meet Juno</button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

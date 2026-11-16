@@ -1,0 +1,507 @@
+/* ============================================================
+   pixel.css — Pixel mode skin (bright 8-bit game look).
+   Everything is scoped to html.pixel, which js/pixel.js sets
+   from the "Pixel mode" setting. Remove the class and the app
+   falls back to styles.css untouched.
+
+   The pixel frame trick: four hard box-shadows shifted 3px up,
+   down, left and right draw an ink border with notched corners,
+   like a sprite. A fifth shadow adds the "ledge" underneath.
+   ============================================================ */
+
+html.pixel {
+  --px: 3px;
+  --ink: #2A1F3D; --ink-2: #3A2E52; --cream: #FFF6E0;
+  --grey: #6B5F80; --line: #D9CCEB; --bg: #FFF6E0; --soft: #FBEFD6; --surface: #FFFDF6; --surface-2: #FFF9EC;
+  --green: #5ED44A; --green-d: #237A32;
+  --blue: #5CC8FF;  --blue-d: #185A92;
+  --red: #FF6B8B;   --red-d: #C02E57;
+  --gold: #FFD23F;  --gold-d: #8A5800;
+  --purple: #A98BFF; --purple-d: #6F52E0;
+  --orange: #FF9F4A; --orange-d: #B04F0C;
+  --mint: #4FE3C1; --pink: #FF8AC8; --sky: #BDEBFF;
+  --shadow: none;
+  --frame: 0 calc(var(--px) * -1) 0 0 var(--ink), 0 var(--px) 0 0 var(--ink), calc(var(--px) * -1) 0 0 0 var(--ink), var(--px) 0 0 0 var(--ink);
+  --frame-2: 0 -2px 0 0 var(--ink), 0 2px 0 0 var(--ink), -2px 0 0 0 var(--ink), 2px 0 0 0 var(--ink);
+  --drop: 0 calc(var(--px) * 2.5) 0 0 rgba(42,31,61,.22);
+  --drop-sm: 0 calc(var(--px) * 2) 0 0 rgba(42,31,61,.22);
+  --checker: conic-gradient(rgba(42,31,61,.035) 25%, transparent 0 50%, rgba(42,31,61,.035) 0 75%, transparent 0);
+  --font: 'Pixelify Sans', ui-monospace, monospace;
+  --font-body: 'Nunito', -apple-system, system-ui, sans-serif;
+  --font-8: 'Press Start 2P', ui-monospace, monospace;
+}
+
+/* ---------- foundations ---------- */
+html.pixel *, html.pixel *::before, html.pixel *::after { border-radius: 0 !important; }
+/* Type: Pixelify's 5 reads as an S, so it only sets words that never carry numbers
+   (headings, nav, tabs). Body text, numbers, buttons and inputs use Nunito.
+   User-typed text (goal titles) stays in Nunito too, since it can hold any digit. */
+html.pixel, html.pixel body { font-family: var(--font-body); font-weight: 600; font-variant-ligatures: none; }
+html.pixel body {
+  background-color: #8FDCFF;
+  background-image: linear-gradient(#5EC8FF 0 18%, #74D2FF 18% 36%, #8FDCFF 36% 54%, #ABE6FF 54% 72%, #C8F0FF 72% 90%, #E2F8FF 90%);
+  background-attachment: fixed;
+}
+html.pixel button, html.pixel input, html.pixel textarea, html.pixel select { font-family: var(--font-body); }
+html.pixel :is(.screen-heading h1, .home-section-title, .progress-card .card-heading h2, .settings-card .card-heading h2, .badge-card .card-heading h2, .workout-card-title, .workout-hero h2,
+  .auth-hero h1, .auth-card h2, .onboarding-card > h1, .guide-intro h2, .guide-card h3, .meal-plan-summary h2, .meal-plan-copy h3,
+  .empty-state h3, .history-empty h3, .meal-history-header h1, .exercise-title strong, .next-quest-copy strong,
+  .bottom-nav button > span:last-child, .segmented-control button, .choice-card strong) {
+  font-family: var(--font);
+}
+html.pixel #app {
+  background-color: var(--bg); background-image: var(--checker); background-size: 12px 12px;
+  box-shadow: 0 0 0 3px var(--ink), 10px 0 0 3px rgba(42,31,61,.16);
+}
+html.pixel .app-shell, html.pixel .onboarding-shell, html.pixel .auth-shell { background: transparent; }
+html.pixel h1, html.pixel h2, html.pixel h3, html.pixel strong, html.pixel b { font-weight: 700; }
+html.pixel ::-webkit-scrollbar-thumb { background: var(--ink); }
+html.pixel :focus-visible { outline: 3px dashed var(--blue-d) !important; outline-offset: 5px !important; }
+
+/* small caps labels → arcade font */
+html.pixel :is(.screen-eyebrow, .home-eyebrow, .card-heading span, .auth-kicker, .workout-card-eyebrow, .meal-history-header span,
+  .history-day-heading span, .meal-plan-summary > div:first-child > span, .plan-preview > span, .snack-label, .history-meal-copy span,
+  .workout-hero-top, .auth-brand, .step-count, .set-head) {
+  font-family: var(--font-8); font-weight: 400; font-size: 8px; letter-spacing: .5px; line-height: 1.7;
+}
+/* big numbers → Nunito black: clear digits, still chunky */
+html.pixel :is(.progress-summary-grid strong, .macro-summary strong, .meal-history-summary strong,
+  .home-count-badge, .goal-target, .progress-card .card-heading > strong, .history-day-heading > strong,
+  .player-level-card .card-heading > strong, .badge-card .card-heading > strong) {
+  font-family: var(--font-body); font-weight: 900; letter-spacing: 0;
+}
+
+/* pixel sprites (emoji replacements) — integer scale via --ps keeps pixels crisp */
+.px-ico { --ps: 2px; display: inline-block; width: calc(var(--sw) * var(--ps)); height: calc(var(--sh) * var(--ps)); vertical-align: middle; flex-shrink: 0; line-height: 0; }
+.px-ico svg { display: block; width: 100%; height: 100%; }
+html.pixel :is(.meal-chip-icon, .workout-card-icon, .empty-state > div, .history-empty > div, .guide-intro > div, .choice-card > span, .history-meal-photo .history-photo-fallback) .px-ico { --ps: 3px; }
+html.pixel :is(.meal-chip-copy small, .completion-note, .snack-chip, .workout-action-dock button) .px-ico { --ps: 1px; }
+/* the tick is white for coloured boxes; on light chips it turns green so it doesn't read as an empty box */
+html.pixel :is(.meal-chip-copy small, .auth-benefits > span) .px-ico-check rect[fill="#FFFFFF"] { fill: var(--green); }
+
+/* ---------- panels ----------
+   Info panels get a thin ink frame and sit flat. The chunky ledge (--drop) is kept
+   for things you can tap, so the eye goes to actions first. */
+html.pixel :is(.card, .home-card, .home-goal-strip, .schedule-browser, .meal-plan-card, .guide-card,
+  .progress-summary-grid article, .progress-card, .profile-identity, .goal-detail-card, .settings-card, .advanced-card,
+  .meal-calendar-card, .history-day-section, .info-callout, .empty-state, .auth-card, .onboarding-card, .history-meal-row,
+  .player-level-card, .badge-card) {
+  border: 0; background: var(--surface); box-shadow: var(--frame-2);
+}
+html.pixel :is(.exercise-card, .schedule-toggle) { border: 0; background: var(--surface); box-shadow: var(--frame), var(--drop); }
+/* Coloured hero panels become cream with a colour band: one strong colour (green) is left for "do this now". */
+html.pixel :is(.workout-hero, .meal-plan-summary, .guide-intro, .meal-history-summary, .plan-preview) { color: var(--ink); }
+html.pixel .workout-hero { background: var(--surface); box-shadow: inset 0 10px 0 0 var(--day-color), var(--frame-2); padding-top: 26px; }
+html.pixel .meal-plan-summary { background: var(--surface); box-shadow: inset 8px 0 0 0 var(--plan-color), var(--frame-2); }
+html.pixel .guide-intro { background: var(--surface); box-shadow: inset 8px 0 0 0 var(--purple), var(--frame-2); }
+html.pixel .meal-history-summary { background: var(--surface); box-shadow: inset 8px 0 0 0 var(--purple), var(--frame-2); }
+html.pixel .today-workout-card { background: var(--surface); color: var(--ink); box-shadow: inset 8px 0 0 0 var(--workout-color), var(--frame), var(--drop); }
+html.pixel :is(.home-stack, .screen-stack, .subscreen-stack, .meal-history-screen) { gap: 22px; }
+
+html.pixel :is(.today-workout-card, .workout-hero)::after { display: none; }
+html.pixel [style*="--workout-color:var(--grey)"] { --workout-color: var(--mint) !important; }
+html.pixel [style*="--day-color:var(--grey)"] { --day-color: var(--mint) !important; }
+
+/* ---------- buttons ---------- */
+html.pixel .btn3d {
+  color: var(--ink) !important; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+  box-shadow: var(--frame), 0 6px 0 0 var(--sd, var(--green-d));
+  transition: transform .05s steps(1), box-shadow .05s steps(1);
+}
+html.pixel .btn3d:active { transform: translateY(4px); box-shadow: var(--frame), 0 2px 0 0 var(--sd, var(--green-d)); }
+html.pixel .primary-button { min-height: 52px; }
+html.pixel :is(.secondary-button, .meal-history-link, .exercise-menu button, .meal-month-nav button, .meal-history-header button, .choice-card) {
+  border: 0; background: var(--surface); color: var(--ink); box-shadow: var(--frame), var(--drop-sm);
+  transition: transform .05s steps(1);
+}
+html.pixel :is(.secondary-button, .meal-history-link, .exercise-menu button, .meal-month-nav button, .meal-history-header button, .choice-card):active { transform: translateY(3px); box-shadow: var(--frame); }
+html.pixel .secondary-button { font-weight: 700; }
+html.pixel .meal-history-link { font-size: 12px; font-weight: 700; color: var(--ink); background: var(--sky); margin-right: 4px; }
+
+html.pixel .pill { border: 2px solid var(--ink) !important; box-shadow: 0 3px 0 0 rgba(42,31,61,.25) !important; font-weight: 800 !important; }
+html.pixel .pill[style*="color:#fff"] { color: var(--ink) !important; }
+html.pixel .pill[style*="background:var(--grey)"] { background: var(--mint) !important; }
+html.pixel .pill:active { transform: translateY(2px); box-shadow: none !important; }
+html.pixel .schedule-browser .row { padding: 4px 3px 8px !important; }
+
+/* ---------- inputs ---------- */
+html.pixel :is(input, textarea, select):not([type=file]) {
+  border: 3px solid var(--ink) !important; background: #FFFFFF !important; color: var(--ink);
+  box-shadow: inset 3px 3px 0 0 #EFE4CF; font-weight: 600;
+}
+html.pixel textarea::placeholder, html.pixel input::placeholder { color: #9A8FAE; }
+
+/* ---------- top bar: a game HUD ---------- */
+html.pixel .app-topbar {
+  background: var(--ink); border-bottom: 0; backdrop-filter: none; color: var(--cream);
+  box-shadow: 0 3px 0 0 #4A3D63;
+}
+html.pixel .app-topbar > div { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; row-gap: 5px; align-items: center; }
+html.pixel .app-wordmark {
+  grid-row: span 2; width: 38px; height: 38px; background: var(--gold); color: var(--ink);
+  font-family: var(--font-8); font-size: 10px; font-weight: 400; box-shadow: 0 0 0 2px var(--cream);
+}
+html.pixel .app-date { color: var(--cream); font-size: 14px; font-weight: 600; }
+html.pixel .level-chip { align-items: center; gap: 5px; height: 38px; padding: 0 9px; border: 0; background: var(--purple); color: var(--ink); font-family: var(--font-8); font-size: 12px; font-weight: 400; box-shadow: 0 0 0 3px var(--cream); }
+html.pixel .level-chip b { color: var(--ink); font-size: 7px; font-weight: 400; }
+.px-xp { display: flex; align-items: center; gap: 7px; }
+.px-xp b { font-family: var(--font-8); font-size: 7px; font-weight: 400; color: var(--gold); }
+.px-xp i { position: relative; display: block; width: 120px; height: 8px; overflow: hidden; background: #4A3D63; box-shadow: 0 0 0 2px var(--cream); }
+.px-xp i span { display: block; height: 100%; background: repeating-linear-gradient(90deg, #7BE05A 0 6px, #3FB04A 6px 8px); transition: width .45s steps(6); }
+.px-xp em { font-family: var(--font-8); font-size: 8px; font-style: normal; color: var(--cream); }
+.px-xp.is-gain i { animation: px-flash .18s steps(1) 5; }
+@keyframes px-flash { 50% { box-shadow: 0 0 0 2px var(--gold); background: #FFE98A; } }
+
+/* ---------- bottom nav: a hotbar ---------- */
+html.pixel .bottom-nav {
+  gap: 6px; padding: 9px 10px calc(10px + env(safe-area-inset-bottom)); border-top: 0;
+  background: var(--ink); box-shadow: 0 -3px 0 0 #4A3D63; backdrop-filter: none;
+}
+html.pixel .bottom-nav button { min-height: 60px; gap: 4px; background: var(--ink-2); color: #CFC4E8; box-shadow: inset 0 0 0 2px #5A4C78; transition: transform .08s steps(2); }
+html.pixel .bottom-nav button.is-active { background: var(--gold); color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink), 0 0 0 3px var(--cream); transform: translateY(-5px); }
+html.pixel .bottom-nav button:not(.is-active) .px-nav-ico { opacity: .8; }
+html.pixel .bottom-nav button > span:last-child { font-size: 11px; font-weight: 700; letter-spacing: .3px; }
+.px-nav-ico { display: block; width: 28px; height: 24px; }
+.px-nav-ico svg { display: block; width: 100%; height: 100%; }
+
+/* ---------- headings ---------- */
+html.pixel .screen-heading h1 { font-size: 30px; letter-spacing: 0; line-height: 1.1; text-shadow: 3px 3px 0 var(--gold); }
+html.pixel .screen-heading p { font-size: 15px; font-weight: 600; }
+html.pixel .goal-line strong { color: var(--ink); font-weight: 800; }
+html.pixel .screen-eyebrow { color: var(--purple-d); }
+html.pixel .card-heading h2, html.pixel .home-section-title { font-size: 20px; }
+html.pixel :is(.home-eyebrow, .card-heading span) { color: var(--purple-d); }
+
+/* ---------- the pixel city scene ---------- */
+.px-scene { position: relative; margin: 2px 3px 4px; background: var(--ink); line-height: 0; box-shadow: var(--frame), var(--drop); }
+.px-scene-btn { display: block; width: 100%; padding: 0; border: 0; background: var(--ink); cursor: pointer; overflow: hidden; -webkit-tap-highlight-color: transparent; }
+.px-scene canvas { display: block; margin: 0 auto; image-rendering: pixelated; image-rendering: crisp-edges; }
+.px-bubble {
+  position: absolute; bottom: 72px; z-index: 2; max-width: 200px; padding: 7px 10px; transform: translate(-22px, 6px);
+  background: #FFFFFF; color: var(--ink); font-family: var(--font-body); font-size: 14px; font-weight: 800; line-height: 1.2;
+  box-shadow: var(--frame-2), 0 5px 0 0 rgba(42,31,61,.25);
+  opacity: 0; pointer-events: none; transition: opacity .15s steps(2), transform .15s steps(2);
+}
+.px-bubble::after { content: ""; position: absolute; left: 16px; bottom: -8px; width: 8px; height: 6px; background: #FFFFFF; box-shadow: -2px 0 0 0 var(--ink), 2px 0 0 0 var(--ink), 0 2px 0 0 var(--ink); }
+.px-bubble-name { display: block; margin-bottom: 3px; color: var(--purple-d); font-family: var(--font-8); font-size: 7px; font-weight: 400; letter-spacing: .5px; text-transform: uppercase; }
+.px-bubble.is-visible { opacity: 1; transform: translate(-22px, 0); }
+html.pixel .auth-orbit { display: none; }
+.px-scene.is-auth { margin: 20px 3px 26px; }
+
+/* ---------- Today ---------- */
+html.pixel .home-card { padding: 18px; }
+html.pixel .home-goal-strip { background: var(--sky); }
+html.pixel .home-goal-icon, html.pixel .daily-goal-icon { background: #FFFFFF; box-shadow: var(--frame-2); }
+html.pixel .home-goal-meta { color: var(--blue-d); font-weight: 600; font-size: 13px; }
+html.pixel .home-goal-title { font-size: 15px; }
+html.pixel .home-count-badge { min-width: 48px; padding: 6px 8px; background: var(--ink); color: var(--gold); font-size: 15px; }
+html.pixel .home-count-badge.is-orange { background: var(--ink); color: var(--orange); }
+html.pixel .meal-card, html.pixel .daily-goals-card { background: var(--surface); }
+html.pixel .home-card.all-complete { background: #F1FFE8; animation: px-pop .3s steps(3); }
+@keyframes px-pop { 50% { transform: translateY(-4px); } }
+html.pixel .completion-note { background: var(--ink); color: var(--gold); font-size: 13px; font-weight: 600; padding: 10px 12px; }
+
+/* meal hearts replace the ring */
+html.pixel .meal-ring-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; width: auto; height: auto; margin: 16px 0 10px; }
+html.pixel .meal-ring { display: none; }
+html.pixel .meal-ring-center { position: static; flex-direction: row; align-items: baseline; gap: 8px; }
+html.pixel .meal-ring-center small { margin: 0; font-size: 13px; font-weight: 700; color: var(--grey); }
+.px-hearts { display: flex; justify-content: center; gap: 18px; }
+.px-heart { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 0; border: 0; background: none; color: var(--grey); font-family: var(--font); font-size: 12px; font-weight: 700; cursor: pointer; }
+.px-heart svg { display: block; width: 52px; height: 44px; transition: transform .1s steps(2); }
+.px-heart:hover svg { transform: translateY(-3px); }
+.px-heart:active svg { transform: translateY(2px); }
+.px-heart.is-logged { color: var(--red-d); }
+.px-heart.is-now { color: var(--gold-d); }
+.px-heart.is-now svg { animation: px-bob 1s steps(1) infinite; }
+@keyframes px-bob { 50% { transform: translateY(-4px); } }
+
+html.pixel .meal-chip-grid { gap: 12px; margin-top: 6px; }
+html.pixel :is(.meal-chip, .daily-goal) { border: 0; background: var(--surface); box-shadow: var(--frame), var(--drop-sm); transition: transform .05s steps(1); }
+html.pixel :is(.meal-chip, .daily-goal):active { transform: translateY(3px); box-shadow: var(--frame); }
+html.pixel .meal-chip.is-now { background: #FFF1B0; }
+html.pixel .meal-chip.is-logged { background: #DDF7CF; }
+html.pixel .meal-chip-copy strong { font-size: 13px; }
+html.pixel .meal-chip-copy small { font-size: 12px; font-weight: 600; }
+html.pixel .meal-chip.is-now small { color: var(--gold-d); }
+html.pixel .meal-chip.is-logged small { color: var(--green-d); }
+html.pixel .meal-thumb { box-shadow: var(--frame-2); image-rendering: pixelated; }
+
+html.pixel .snack-label { margin-top: 18px; color: var(--grey); }
+html.pixel .snack-chip { border: 2px solid var(--ink); background: #F1E8FF; color: var(--purple-d); font-size: 12px; font-weight: 700; }
+html.pixel .add-snack-button { border: 3px dashed var(--ink); background: #F6F0FF; color: var(--ink); font-size: 13px; font-weight: 700; margin-top: 16px; }
+html.pixel .add-snack-button:hover { background: #ECE2FF; }
+
+html.pixel .goal-progress { height: 14px; margin: 16px 2px; background: #EFE6F7; box-shadow: var(--frame-2); }
+html.pixel .goal-progress span { background: repeating-linear-gradient(90deg, var(--orange) 0 9px, #FFC27A 9px 11px); transition: width .35s steps(5); }
+html.pixel .daily-goal-list { gap: 10px; }
+html.pixel .daily-goal-xp { color: var(--orange-d); font-size: 13px; font-weight: 800; }
+html.pixel .daily-goal.is-done { background: #FFE6C7; }
+html.pixel .daily-goal.is-done .daily-goal-icon { background: #FFF6E0; }
+html.pixel .daily-goal-label { font-size: 15px; font-weight: 700; }
+html.pixel .daily-goal-check { width: 28px; height: 28px; border: 2px solid var(--ink); background: #FFFFFF; }
+html.pixel .daily-goal.is-done .daily-goal-check { border-color: var(--ink); background: var(--orange); }
+
+html.pixel .today-workout-card { min-height: 130px; }
+html.pixel .workout-card-icon { width: 54px; height: 54px; margin-left: 6px; background: #FFFFFF; box-shadow: var(--frame-2); }
+html.pixel .workout-card-eyebrow { opacity: 1; }
+html.pixel .workout-card-title { font-size: 19px; }
+html.pixel .workout-card-meta { font-size: 13px; font-weight: 600; opacity: 1; }
+html.pixel .workout-card-arrow { display: grid; place-items: center; width: 34px; height: 34px; background: var(--green); color: var(--ink); box-shadow: var(--frame-2); font-family: var(--font-8); font-size: 14px; animation: px-nudge 1.2s steps(1) infinite; }
+@keyframes px-nudge { 50% { transform: translateX(4px); } }
+
+/* progress bars → segmented */
+html.pixel :is(.workout-card-progress, .workout-hero-progress) { height: 12px; background: #EFE6F7; box-shadow: var(--frame-2); }
+html.pixel :is(.workout-card-progress span, .workout-hero-progress span) { background: repeating-linear-gradient(90deg, var(--green) 0 8px, #A6EE8E 8px 10px); }
+html.pixel .goal-route i { height: 12px; background: #EFE6F7; box-shadow: var(--frame-2); }
+html.pixel .goal-route i b { background: repeating-linear-gradient(90deg, var(--green) 0 8px, #A6EE8E 8px 10px); }
+html.pixel .goal-route { font-size: 13px; font-weight: 800; }
+
+/* ---------- Meal history ---------- */
+html.pixel .meal-history-header h1 { font-size: 24px; text-shadow: 3px 3px 0 var(--gold); }
+html.pixel .meal-history-header i { color: var(--ink); }
+html.pixel .meal-history-header button { border: 0; font-family: var(--font-8); font-size: 14px; }
+html.pixel .meal-history-summary span { color: var(--grey); font-family: var(--font-8); font-size: 7px; font-weight: 400; }
+html.pixel .meal-history-summary p { border-left: 3px solid var(--ink); font-size: 13px; font-weight: 600; }
+html.pixel .meal-month-nav button { font-family: var(--font-8); font-size: 12px; }
+html.pixel .meal-month-nav h2 { font-size: 20px; }
+html.pixel .meal-calendar-weekdays span { font-size: 11px; font-weight: 700; }
+html.pixel .meal-calendar-number { font-size: 11px; font-weight: 800; }
+html.pixel .meal-calendar-day.is-selected { border: 2px solid var(--ink); background: #FFF1B0; }
+html.pixel .meal-calendar-visual { background: #DDF7CF; box-shadow: var(--frame-2); }
+html.pixel .meal-calendar-visual b { border: 2px solid var(--ink); background: var(--gold); color: var(--ink); font-size: 10px; font-weight: 900; }
+html.pixel .meal-calendar-dot { width: 4px; height: 4px; background: var(--line); }
+html.pixel .history-photo-fallback.is-loading { background: repeating-linear-gradient(90deg, #EFE6F7 0 4px, #FFFFFF 4px 8px); animation: none; }
+html.pixel .history-day-heading > strong { background: var(--ink); color: var(--gold); font-size: 13px; }
+html.pixel .history-day-heading h2 { font-size: 20px; }
+html.pixel .history-meal-row { background: var(--surface-2); }
+html.pixel .history-meal-photo { box-shadow: var(--frame-2); }
+html.pixel .history-meal-copy h3 { font-size: 15px; }
+html.pixel .history-meal-copy time, html.pixel .history-meal-copy p { font-size: 12px; font-weight: 600; }
+html.pixel .history-meal-copy span { color: var(--purple-d); }
+html.pixel .history-empty p { font-size: 13px; }
+
+/* ---------- Bottom sheets: RPG dialog boxes ---------- */
+html.pixel .sheet-backdrop {
+  background-color: rgba(42,31,61,.45); backdrop-filter: none;
+  background-image: conic-gradient(rgba(42,31,61,.35) 25%, transparent 0 50%, rgba(42,31,61,.35) 0 75%, transparent 0); background-size: 4px 4px;
+}
+html.pixel .bottom-sheet { background: var(--surface); border-top: 3px solid var(--ink); box-shadow: inset 0 3px 0 0 #FFFFFF, inset 0 6px 0 0 var(--line); animation: px-sheet-in .24s steps(4); }
+html.pixel .bottom-sheet::before { width: 48px; height: 6px; background: var(--ink); }
+@keyframes px-sheet-in { from { transform: translateY(48px); } }
+html.pixel .bottom-sheet [data-act^="close"] { background: var(--red) !important; box-shadow: var(--frame-2); display: grid; place-items: center; }
+html.pixel .bottom-sheet .tap { border: 0 !important; box-shadow: var(--frame-2), 0 4px 0 0 rgba(42,31,61,.2); margin: 0 2px 12px !important; background: var(--surface); }
+html.pixel .bottom-sheet .tap:hover { background: #FFF1B0; }
+html.pixel .bottom-sheet label[style*="dashed"] { border: 3px dashed var(--ink) !important; background: #F6F0FF !important; }
+
+/* ---------- Toast: a dialog box with a blinking ▼ ---------- */
+html.pixel .app-toast {
+  padding: 13px 34px 13px 15px; background: var(--surface); color: var(--ink); font-size: 15px; font-weight: 600;
+  box-shadow: var(--frame), 0 7px 0 0 rgba(42,31,61,.3); transition: opacity .15s steps(2), transform .15s steps(2);
+}
+html.pixel .app-toast::after { content: ""; position: absolute; right: 12px; bottom: 11px; border: 5px solid transparent; border-top-color: var(--ink); animation: px-blink .8s steps(1) infinite; }
+html.pixel .app-toast.is-error { background: #FFD9E2; }
+html.pixel .app-toast.is-success { background: #DDF7CF; }
+@keyframes px-blink { 50% { opacity: 0; } }
+
+/* ---------- Train ---------- */
+html.pixel .schedule-toggle { font-size: 14px; }
+html.pixel .schedule-toggle strong { color: var(--purple-d); font-size: 13px; }
+html.pixel .workout-hero h2 { font-size: 26px; }
+html.pixel .workout-hero p { font-size: 14px; font-weight: 600; opacity: 1; }
+html.pixel .workout-hero-top { opacity: 1; }
+html.pixel .workout-note { background: var(--soft); box-shadow: var(--frame-2); font-size: 13px; font-weight: 600; }
+html.pixel .exercise-card { border: 0; }
+html.pixel .exercise-card.is-complete { background: #EAFBE0; }
+html.pixel .exercise-status { width: 36px; height: 36px; background: #FFFFFF; color: var(--ink); box-shadow: var(--frame-2); font-size: 16px; font-weight: 900; }
+html.pixel .exercise-card.is-complete .exercise-status { background: var(--green); }
+html.pixel .exercise-title strong { font-size: 16px; }
+html.pixel .exercise-title small { font-size: 13px; font-weight: 600; }
+html.pixel .exercise-chevron { background: var(--gold); color: var(--ink); box-shadow: var(--frame-2); font-family: var(--font-8); font-size: 12px; }
+html.pixel .exercise-more { color: var(--ink); }
+html.pixel .exercise-menu { gap: 12px; padding: 4px 14px 16px; }
+html.pixel .exercise-menu button { font-size: 13px; font-weight: 700; }
+html.pixel .set-table { border: 3px solid var(--ink); }
+html.pixel .set-row { border-top: 2px solid var(--line); font-size: 14px; }
+html.pixel .set-head { background: var(--ink); color: var(--cream); min-height: 32px; font-size: 6px; }
+html.pixel .set-row.is-complete { background: #EAFBE0; }
+html.pixel .set-row.is-next { background: #FFF8D6; box-shadow: inset 5px 0 0 var(--gold); }
+html.pixel .set-number { font-size: 15px; font-weight: 900; }
+html.pixel .set-row input { width: 50px; height: 38px; border-width: 2px !important; box-shadow: none; font-size: 15px; }
+html.pixel :is(.set-log-button, .set-check) { width: 32px; height: 32px; background: var(--green); box-shadow: var(--frame-2); }
+html.pixel .set-log-button { box-shadow: var(--frame-2), 0 4px 0 0 var(--green-d); }
+html.pixel .set-log-button:active { transform: translateY(3px); box-shadow: var(--frame-2); }
+html.pixel .set-pending { border: 2px solid var(--line); }
+html.pixel .locked-note { background: var(--soft); box-shadow: var(--frame-2); font-size: 14px; }
+html.pixel .workout-action-dock { border: 0; background: var(--ink); box-shadow: 0 0 0 3px var(--cream), 0 0 0 6px var(--ink); backdrop-filter: none; padding: 10px; }
+
+/* ---------- Plan ---------- */
+html.pixel .segmented-control { gap: 4px; padding: 4px; background: var(--ink); }
+html.pixel .segmented-control button { color: #CFC4E8; font-size: 14px; font-weight: 700; }
+html.pixel .segmented-control button.is-active { background: var(--gold); color: var(--ink); box-shadow: none; }
+html.pixel .meal-plan-summary > div > span { opacity: 1; }
+html.pixel .meal-plan-summary { grid-template-columns: 1fr; gap: 12px; }
+html.pixel .meal-plan-summary p { max-width: none; }
+html.pixel .meal-plan-summary h2 { font-size: 20px; }
+html.pixel .macro-summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; text-align: left; }
+html.pixel .meal-plan-summary p { font-size: 13px; font-weight: 600; opacity: 1; }
+html.pixel .macro-summary strong { font-size: 16px; }
+html.pixel .macro-summary strong small { font-size: 11px; }
+html.pixel .macro-summary span { font-size: 12px; }
+html.pixel .meal-plan-time { color: var(--purple-d); font-family: var(--font-8); font-size: 8px; font-weight: 400; line-height: 1.6; }
+html.pixel .meal-plan-copy h3 { font-size: 16px; }
+html.pixel .meal-plan-copy > div span { border: 2px solid var(--ink); background: var(--gold); color: var(--ink); font-size: 11px; font-weight: 700; }
+html.pixel .meal-plan-copy p { font-size: 14px; font-weight: 500; }
+html.pixel .meal-plan-copy small { font-size: 12px; font-weight: 600; }
+html.pixel .info-callout { background: var(--sky); color: var(--ink); font-size: 14px; font-weight: 500; }
+html.pixel .guide-intro h2 { font-size: 22px; }
+html.pixel .guide-intro p { color: var(--ink); font-size: 14px; font-weight: 500; }
+html.pixel .guide-card { border-left: 8px solid var(--guide-color); }
+html.pixel .guide-card h3 { font-size: 18px; }
+html.pixel .guide-card p { border-top: 2px dashed var(--line); font-size: 14px; font-weight: 500; }
+html.pixel .guide-card p span { width: 24px; height: 24px; background: var(--ink); color: var(--gold); font-size: 13px; font-weight: 900; }
+
+/* ---------- Progress ---------- */
+html.pixel .progress-summary-grid { gap: 14px; }
+html.pixel .progress-summary-grid span { font-size: 13px; font-weight: 600; }
+html.pixel .progress-summary-grid strong { font-size: 24px; margin-top: 6px; }
+html.pixel .progress-summary-grid small { font-size: 12px; font-weight: 600; }
+html.pixel .progress-card .card-heading > strong { background: var(--ink); color: var(--gold); font-size: 14px; }
+html.pixel .progress-days { gap: 6px; }
+html.pixel .progress-days button { border: 2px solid var(--ink); background: #FFFFFF; color: var(--ink); }
+html.pixel .progress-days button span { font-size: 11px; font-weight: 800; }
+html.pixel .progress-days button strong { font-size: 15px; }
+html.pixel .progress-days button.is-active { border-color: var(--ink); background: var(--gold); color: var(--ink); box-shadow: 0 3px 0 0 var(--ink); }
+html.pixel .progress-days button.is-complete:not(.is-active) { border-color: var(--ink); background: #DDF7CF; color: var(--green-d); }
+html.pixel .habit-editor { border-top: 2px dashed var(--line); }
+html.pixel .habit-editor-title strong { font-size: 15px; }
+html.pixel .habit-editor-title span { font-size: 12px; }
+html.pixel .habit-row { border-top: 2px dashed var(--line); grid-template-columns: 36px 1fr 28px; min-height: 50px; }
+html.pixel .habit-row strong { font-size: 15px; font-weight: 600; }
+html.pixel .habit-row i { width: 26px; height: 26px; border: 2px solid var(--ink); background: #FFFFFF; }
+html.pixel .habit-row.is-done i { border-color: var(--ink); background: var(--green); }
+html.pixel .habit-row.is-done strong { color: var(--green-d); }
+html.pixel .field-label { font-size: 13px; font-weight: 700; color: var(--ink); }
+html.pixel .chart-wrap { padding: 6px; background: #FFFFFF; box-shadow: var(--frame-2); height: 200px; }
+
+/* ---------- Me ---------- */
+html.pixel .profile-avatar { background: var(--purple); color: var(--ink); font-family: var(--font-8); font-size: 18px; font-weight: 400; box-shadow: var(--frame-2); }
+html.pixel .profile-identity h2 { font-size: 20px; }
+html.pixel .profile-identity p { font-size: 13px; }
+html.pixel .goal-target { background: var(--ink); color: var(--gold); font-size: 15px; }
+html.pixel .goal-detail-card > p { font-size: 13px; }
+html.pixel .settings-row { border-top: 2px dashed var(--line); }
+html.pixel .settings-row strong { font-size: 15px; }
+html.pixel .settings-row small { font-size: 12px; }
+html.pixel .settings-row i { font-family: var(--font-8); font-size: 8px; color: var(--green-d); }
+html.pixel .settings-row[aria-pressed="false"] i { color: var(--grey); }
+html.pixel .settings-icon { background: #FFFFFF; box-shadow: var(--frame-2); }
+html.pixel .advanced-card summary strong { font-size: 15px; }
+html.pixel .advanced-card summary small, html.pixel .advanced-card p { font-size: 13px; }
+html.pixel .medical-note { font-size: 12px; }
+
+/* ---------- Sign-in & onboarding ---------- */
+html.pixel .auth-brand > span, html.pixel .app-loading-mark { background: var(--gold); color: var(--ink); box-shadow: var(--frame-2); }
+html.pixel .auth-hero { padding-bottom: 22px; }
+html.pixel .auth-hero h1 { font-size: 36px; letter-spacing: 0; text-shadow: 3px 3px 0 var(--gold); }
+html.pixel .auth-hero h1 em { color: var(--purple-d); }
+html.pixel .auth-hero > p { font-size: 15px; }
+html.pixel .auth-benefits > span { border: 2px solid var(--ink); background: #FFFFFF; color: var(--ink); font-size: 12px; font-weight: 600; }
+html.pixel .auth-card { padding: 22px; }
+html.pixel .auth-card h2 { font-size: 22px; }
+html.pixel .auth-card label, html.pixel .onboarding-fields label { font-size: 14px; }
+html.pixel .guest-note, html.pixel .form-message, html.pixel .auth-divider { font-size: 12px; }
+html.pixel .auth-divider::before, html.pixel .auth-divider::after { height: 2px; background: repeating-linear-gradient(90deg, var(--ink) 0 4px, transparent 4px 8px); }
+html.pixel .step-progress i { height: 10px; background: #EFE6F7; box-shadow: var(--frame-2); }
+html.pixel .step-progress i.is-active { background: var(--green); }
+html.pixel .onboarding-card > h1 { font-size: 27px; text-shadow: 3px 3px 0 var(--gold); }
+html.pixel .onboarding-card > p, html.pixel .field-help { font-size: 13px; }
+html.pixel .onboarding-tip { border: 2px solid var(--ink); background: var(--sky); color: var(--ink); font-size: 13px; }
+html.pixel .choice-card { min-height: 124px; }
+html.pixel .choice-card.is-selected { background: #FFF1B0; box-shadow: var(--frame), 0 6px 0 0 var(--gold-d); }
+html.pixel .choice-card small { font-size: 12px; }
+html.pixel .plan-preview { background: var(--ink); color: var(--cream); box-shadow: var(--frame-2); }
+html.pixel .plan-preview > span { color: var(--gold); }
+html.pixel .plan-preview p { color: #D8CFEA; font-size: 13px; }
+
+/* ---------- loading ---------- */
+html.pixel .app-loading-mark { width: 72px; height: 72px; font-family: var(--font-8); font-size: 16px; font-weight: 400; }
+html.pixel .loading-bar { width: 168px; height: 14px; background: #FFFFFF; box-shadow: var(--frame-2); }
+html.pixel .loading-bar span { background: repeating-linear-gradient(90deg, var(--green) 0 8px, transparent 8px 10px); animation: loading-slide 1.2s steps(6) infinite alternate; }
+html.pixel .app-loading p { font-size: 15px; font-weight: 600; }
+html.pixel .app-loading p::after { content: "_"; animation: px-blink .8s steps(1) infinite; }
+
+/* ---------- effects layer (particles, +XP, banners) ---------- */
+.px-fx { position: fixed; left: 0; top: 0; z-index: 300; pointer-events: none; image-rendering: pixelated; image-rendering: crisp-edges; }
+.px-float {
+  position: fixed; z-index: 310; pointer-events: none; transform: translate(-50%, 0);
+  color: var(--gold, #FFD23F); font-family: 'Nunito', sans-serif; font-size: 17px; font-weight: 900; white-space: nowrap;
+  text-shadow: 2px 0 0 #2A1F3D, -2px 0 0 #2A1F3D, 0 2px 0 #2A1F3D, 0 -2px 0 #2A1F3D, 2px 2px 0 #2A1F3D;
+  animation: px-float-up 1s steps(10) forwards;
+}
+@keyframes px-float-up { to { transform: translate(-50%, -42px); opacity: 0; } }
+.px-banner {
+  position: fixed; left: 50%; top: 36%; z-index: 320; display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 18px 24px 20px; transform: translate(-50%, -50%); pointer-events: none;
+  background: #2A1F3D; color: #FFD23F; text-align: center;
+  box-shadow: 0 0 0 4px #FFF6E0, 0 0 0 7px #2A1F3D, 0 14px 0 4px rgba(42,31,61,.3);
+  animation: px-banner-in .3s steps(3), px-banner-out .3s steps(3) 2.25s forwards;
+}
+.px-banner { max-width: min(320px, calc(100vw - 48px)); }
+.px-banner strong { font-family: var(--font-8); font-size: 14px; font-weight: 400; letter-spacing: 1px; line-height: 1.5; text-transform: uppercase; }
+.px-banner small { color: #FFF6E0; font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 800; line-height: 1.35; }
+.px-banner-stars { display: flex; gap: 8px; }
+.px-banner-stars svg { width: 22px; height: 22px; animation: px-bob .5s steps(1) infinite; }
+.px-banner-stars svg:nth-child(2) { animation-delay: .25s; }
+@keyframes px-banner-in { from { transform: translate(-50%, -50%) scale(.4); } }
+@keyframes px-banner-out { to { transform: translate(-50%, -50%) scale(.4); opacity: 0; } }
+
+@media (max-width: 370px) {
+  html.pixel .screen-heading h1 { font-size: 26px; }
+  html.pixel .px-xp i { width: 84px; }
+  .px-hearts { gap: 10px; }
+  html.pixel .auth-hero h1 { font-size: 31px; }
+}
+
+/* ---------- game layer (js/game.js) ---------- */
+html.pixel .next-quest { border: 0; background: #DDF7CF; box-shadow: var(--frame), 0 6px 0 0 var(--green-d); transition: transform .05s steps(1); }
+html.pixel .next-quest:active { transform: translateY(4px); box-shadow: var(--frame), 0 2px 0 0 var(--green-d); }
+html.pixel .next-quest.is-clear { background: #FFF1B0; box-shadow: var(--frame-2); }
+html.pixel .next-quest-icon { width: 52px; height: 52px; background: #FFFFFF; box-shadow: var(--frame-2); }
+html.pixel .next-quest-icon .px-ico { --ps: 3px; }
+html.pixel .next-quest-label { color: var(--green-d); font-family: var(--font-8); font-size: 8px; font-weight: 400; }
+html.pixel .next-quest.is-clear .next-quest-label { color: var(--gold-d); }
+html.pixel .next-quest-copy strong { margin-top: 5px; font-size: 19px; }
+html.pixel .next-quest-copy small { color: var(--ink-2); font-size: 13px; font-weight: 700; }
+html.pixel .next-quest-cta { background: var(--green); color: var(--ink); box-shadow: var(--frame-2); font-size: 13px; font-weight: 900; text-transform: uppercase; }
+
+html.pixel .boss-pips { gap: 8px; }
+html.pixel .boss-pips i { height: 16px; background: #EFE6F7; box-shadow: var(--frame-2); }
+html.pixel .boss-pips i.is-hit { background: repeating-linear-gradient(90deg, var(--purple) 0 8px, #CDBBFF 8px 10px); }
+html.pixel .week-star b { border: 2px dashed var(--line); background: #FFFFFF; }
+html.pixel .week-star.is-good b { border: 0; background: #FFF1B0; box-shadow: var(--frame-2); }
+html.pixel .week-star b .px-ico { --ps: 2px; }
+html.pixel .week-star small { font-size: 12px; font-weight: 800; }
+html.pixel .week-note { font-size: 13px; font-weight: 600; }
+
+html.pixel .player-level-card .card-heading h2 { font-family: var(--font-8); font-size: 16px; font-weight: 400; line-height: 1.6; }
+html.pixel .player-level-card .card-heading > strong, html.pixel .badge-card .card-heading > strong { background: var(--ink); color: var(--gold); font-size: 14px; }
+html.pixel .level-bar { height: 16px; background: #EFE6F7; box-shadow: var(--frame-2); }
+html.pixel .level-bar span { background: repeating-linear-gradient(90deg, var(--purple) 0 8px, #CDBBFF 8px 10px); transition: width .45s steps(6); }
+html.pixel .player-level-card p { font-size: 13px; font-weight: 700; }
+html.pixel .badge-grid { gap: 12px; }
+html.pixel .badge { border: 2px dashed var(--line); background: #FFFFFF; }
+html.pixel .badge.is-earned { border: 0; background: #FFF6D6; box-shadow: var(--frame-2); }
+html.pixel .badge-icon .px-ico { --ps: 3px; }
+html.pixel .badge strong { font-size: 15px; }
+
+html.pixel .day-picker { gap: 5px; }
+html.pixel .day-picker .pill { padding: 6px 0 !important; }
+html.pixel .day-picker .pill span { font-size: 11px; }
+html.pixel .day-picker .pill b { font-size: 16px; font-weight: 900; }
+html.pixel .set-goal { font-size: 14px; font-weight: 800; color: var(--ink); }
+html.pixel .optional-fields { border: 2px dashed var(--ink); background: #F6F0FF; }
+html.pixel .optional-fields summary { font-size: 14px; }
+html.pixel .name-chip { border: 2px solid var(--ink); background: #FFFFFF; color: var(--ink); box-shadow: 0 3px 0 0 rgba(42,31,61,.25); font-weight: 800; }
+html.pixel .name-chip:active { transform: translateY(2px); box-shadow: none; }
+html.pixel .spotter-form { padding: 4px 0 14px; }
