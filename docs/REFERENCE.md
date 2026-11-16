@@ -270,6 +270,14 @@ the import is skipped.
 
 ## Changelog
 
+### 2026-11-16 — Empty reps box logs the planned reps (live)
+- Live check as a guest on hera-ashen-five.vercel.app: sign-in, onboarding, habit, meal, set
+  and every tab worked and survived a reload. One problem: the reps box shows the plan's reps
+  as a grey hint, people read it as filled in, and ✓ answered "Add your reps first."
+- `logSetFor` now falls back to the hint's number when the reps box is empty; typed reps still
+  win. Test added in `tests/ui-render.test.cjs`. Cache bumped to `fitness-tracker-v14`.
+- The live check left a guest test player "Tester" (quest "Live check") in Supabase Auth.
+
 ### 2026-11-16 — Pixel is the only look (branch `pixel-theme`)
 - Fish decided the pixel game look is Juno's design, with no fallback to the old flat
   green design.

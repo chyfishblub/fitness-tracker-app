@@ -138,7 +138,7 @@ async function testMealPersistence() {
 
   const sw = fs.readFileSync("sw.js", "utf8");
   const html = fs.readFileSync("index.html", "utf8");
-  assert.match(sw, /fitness-tracker-v13/);
+  assert.match(sw, /fitness-tracker-v14/);
   assert.match(sw, /\.\/pixel\.css/, "service worker caches the pixel skin");
   assert.match(sw, /\.\/js\/pixel\.js/);
   assert.match(html, /js\/app\.js[\s\S]*js\/pixel\.js[\s\S]*js\/auth\.js/, "pixel.js loads after app.js and before auth.js");
@@ -225,6 +225,21 @@ async function testGameLayer() {
   // A quest with no weight goal still renders.
   run(`DB.goal.start_weight = null; DB.goal.goal_weight = null; render(); ui.activeTab = "progress"; render();`);
   assert.doesNotMatch(appNode.innerHTML, /null kg|undefined/);
+
+  // Tapping ✓ with an empty reps box logs the planned reps shown as its hint.
+  const logged = [];
+  context.logSet = async (_userId, entry) => { logged.push(entry); };
+  context.getSetLogsForDate = async () => [];
+  const inputs = { "setWeight-k": { value: "" }, "setReps-k": { value: "", placeholder: "8" } };
+  const getById = context.document.getElementById;
+  context.document.getElementById = (id) => inputs[id] || getById(id);
+  await vm.runInContext(`logSetFor("k", "bench-press", 1, false)`, context);
+  assert.equal(logged.length, 1, "an empty reps box still logs the set");
+  assert.equal(logged[0].reps, 8);
+  assert.equal(logged[0].weightKg, null);
+  inputs["setReps-k"].value = "12";
+  await vm.runInContext(`logSetFor("k", "bench-press", 2, false)`, context);
+  assert.equal(logged[1].reps, 12, "typed reps win over the hint");
 }
 
 Promise.resolve()

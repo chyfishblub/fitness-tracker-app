@@ -674,7 +674,9 @@ async function logSetFor(key, exerciseId, setNumber, timed) {
   if (!timed) {
     const wEl = document.getElementById(`setWeight-${key}`), rEl = document.getElementById(`setReps-${key}`);
     weight = parseFloat(wEl.value) || null;
-    reps = parseInt(rEl.value, 10);
+    // An empty reps box shows the plan's reps as its hint, and people read that as filled in,
+    // so tapping ✓ on an empty box logs the planned reps.
+    reps = parseInt(rEl.value, 10) || parseInt(rEl.placeholder, 10);
     if (!reps) { showToast("Add your reps first. Leave the weight empty for bodyweight moves.", "is-error"); return; }
   }
   const best = weight ? bestWeightFor(exerciseId) : 0;
