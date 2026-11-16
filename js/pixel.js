@@ -1,25 +1,27 @@
 /* ============================================================
-   pixel.js — Pixel mode: a bright 8-bit game skin for the app.
+   pixel.js — Juno's 8-bit game look. It is the only look: the
+   old flat design is gone, and <html class="pixel"> is fixed in
+   index.html.
 
-   It's a layer ON TOP of the normal app. app.js and auth.js don't
-   know it exists: a MutationObserver watches #app, and after every
-   render it swaps emoji for pixel sprites, adds the animated city
-   scene, the XP bar and the meal hearts. pixel.css does the rest.
-   Turn it off in Me → App settings → Pixel mode.
+   app.js and auth.js render plain markup; a MutationObserver
+   watches #app, and after every render this swaps emoji for pixel
+   sprites, adds the animated city scene, the XP bar and the meal
+   hearts. pixel.css does the rest. The only setting is game sounds.
    ============================================================ */
 
 (function () {
   "use strict";
 
-  // ---------- preferences ----------
+  // ---------- preferences (game sounds only) ----------
   const PREF_KEY = "fitnessTracker_pixel_v1";
   const prefs = (() => {
-    const fallback = { on: true, sound: true };
+    const fallback = { sound: true };
     try { return Object.assign(fallback, JSON.parse(localStorage.getItem(PREF_KEY)) || {}); } catch (e) { return fallback; }
   })();
   function savePrefs() { try { localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); } catch (e) {} }
 
-  document.documentElement.classList.toggle("pixel", prefs.on);
+  prefs.on = true; // older saves may hold on:false from the removed Pixel mode switch
+  document.documentElement.classList.add("pixel");
   const reduceMotion = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
   const INK = "#2A1F3D";
 
@@ -209,7 +211,7 @@
   // ---------- 8-bit sound ----------
   let audioCtx = null;
   function tone(freq, start, dur, type, vol, slideTo) {
-    if (!prefs.sound || !prefs.on) return;
+    if (!prefs.sound) return;
     try {
       audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
       if (audioCtx.state === "suspended") audioCtx.resume();
@@ -921,8 +923,7 @@
     if (!anchor) return;
     const row = (act, iconHtml, title, sub, on) =>
       `<button class="settings-row" data-px-act="${act}" aria-pressed="${on}"><span class="settings-icon">${iconHtml}</span><span><strong>${title}</strong><small>${sub}</small></span><i>${on ? "On" : "Off"}</i></button>`;
-    let html = row("theme", prefs.on ? icon("gamepad", "game") : "🎮", "Pixel mode", "The game look, with your Spotter's animated city", prefs.on);
-    if (prefs.on) html += row("sound", icon("speaker", "sound"), "Game sounds", "8-bit blips when you earn XP", prefs.sound);
+    const html = row("sound", icon("speaker", "sound"), "Game sounds", "8-bit blips when you earn XP", prefs.sound);
     anchor.insertAdjacentHTML("beforebegin", html);
   }
 
@@ -933,7 +934,6 @@
     decorating = true;
     try {
       injectSettings(app);
-      if (!prefs.on) { Scene.unmount(); return; }
       replaceEmoji(app);
       app.querySelectorAll(".bottom-nav button[data-v]").forEach((b) => {
         const svg = b.querySelector("svg.nav-icon");
@@ -964,8 +964,7 @@
   document.addEventListener("click", (e) => {
     const own = e.target.closest("[data-px-act]");
     if (own) {
-      if (own.dataset.pxAct === "theme") { prefs.on = !prefs.on; savePrefs(); location.reload(); }
-      else if (own.dataset.pxAct === "sound") {
+      if (own.dataset.pxAct === "sound") {
         prefs.sound = !prefs.sound; savePrefs();
         own.setAttribute("aria-pressed", String(prefs.sound));
         own.querySelector("i").textContent = prefs.sound ? "On" : "Off";
@@ -973,7 +972,6 @@
       }
       return;
     }
-    if (!prefs.on) return;
     const b = e.target.closest("[data-act]");
     if (!b) return;
     if (b.dataset.act === "habit") {
@@ -987,7 +985,7 @@
   }, true);
 
   // ---------- charts ----------
-  if (prefs.on && window.Chart) {
+  if (window.Chart) {
     // Numbers stay in Nunito: the pixel font's 5 reads as an S.
     const MAP = { "#58CC02": "#3FB04A", "#FFC800": "#F2A93B", "#CE82FF": "#8E6CF0" };
     Chart.register({
@@ -1007,7 +1005,6 @@
     });
   }
 
-  if (prefs.on) document.querySelector('meta[name="theme-color"]')?.setAttribute("content", INK);
 
-  window.PixelMode = { prefs, spriteSVG, SPRITES, celebrate: (title, sub) => { if (prefs.on) banner(title, sub); } };
+  window.PixelMode = { prefs, spriteSVG, SPRITES, celebrate: (title, sub) => banner(title, sub) };
 })();

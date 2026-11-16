@@ -169,14 +169,6 @@ function showToast(message, type) {
   requestAnimationFrame(() => toast.classList.add("is-visible"));
   clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove("is-visible"), 2800);
 }
-function check(on, size) {
-  size = size || 24;
-  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
-    <rect x="1.5" y="1.5" width="21" height="21" rx="7" stroke="${on ? "var(--green)" : "#E5E5E5"}" stroke-width="2.5" fill="${on ? "var(--green)" : "#fff"}"/>
-    ${on ? '<path d="M7 12l3.2 3.2L17 8.5" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>' : ""}
-  </svg>`;
-}
-function sectionTitle(t) { return `<div style="font-size:13px;font-weight:900;color:var(--ink);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">${t}</div>`; }
 function weekSelector() {
   const many = DB.plan.weeks.length > 5;
   let h = `<div class="row week-picker ${many ? "is-scrollable" : ""}" role="group" aria-label="Choose a week">`;
@@ -844,34 +836,6 @@ function progressTab(game) {
   return h;
 }
 
-// ---------- TAB: HABITS ----------
-function habitsTab() {
-  ensureHabitWeek(ui.selectedWeek);
-  const week = DB.plan.weeks[ui.selectedWeek];
-  const dates = weekDates(DB.goal, ui.selectedWeek);
-  let h = '<div style="display:flex;flex-direction:column;gap:12px">' + weekSelector();
-  h += `<div style="font-size:16px;font-weight:900;color:var(--ink)">Daily Habits — ${week.isPeak ? "Peak Week" : "Week " + (week.weekIndex + 1)}</div>`;
-  DAYS.forEach((dn, di) => {
-    const date = dates[di];
-    const cnt = habitDefs.filter((hb) => isHabitDone(date, hb.id)).length;
-    const all = cnt === habitDefs.length;
-    h += `<div style="background:${all ? "#F0FBE6" : "#fff"};border:2px solid ${all ? "var(--green)" : "var(--line)"};border-radius:18px;padding:14px">
-      <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-size:15px;font-weight:900;color:${all ? "var(--green-d)" : "var(--ink)"}">${dn} ${all ? "🎉" : ""}</span>
-        <span style="font-size:12px;color:#fff;background:${all ? "var(--green)" : "var(--grey)"};padding:2px 10px;border-radius:10px;font-weight:800">${cnt}/${habitDefs.length}</span></div>`;
-    habitDefs.forEach((hb) => {
-      const on = isHabitDone(date, hb.id);
-      h += `<div class="tap" data-act="habit" data-date="${date}" data-h="${hb.id}" style="display:flex;align-items:center;gap:9px;padding:6px 0">
-        ${check(on, 20)}<span style="font-size:13px;font-weight:800;color:${on ? "var(--green-d)" : "var(--ink)"}">${hb.icon} ${hb.label}</span></div>`;
-    });
-    h += "</div>";
-  });
-  const note = DB.weekNotes[week.weekIndex] || "";
-  h += `<div class="card">${sectionTitle("Weekly Note")}
-    <textarea id="weekNoteInput" data-week="${week.weekIndex}" placeholder="Energy? Cravings? How's the body feeling?" style="width:100%;min-height:56px;background:var(--soft);border:2px solid var(--line);border-radius:14px;color:var(--ink);padding:10px;font-size:13px;resize:vertical;box-sizing:border-box">${escapeHtml(note)}</textarea></div>`;
-  return h + "</div>";
-}
-
 // ---------- TAB: GUIDE ----------
 function guideTab() {
   let h = '<div class="subscreen-stack">';
@@ -1117,9 +1081,9 @@ function render() {
 }
 
 // ---------- level-ups, badges, stars and bosses ----------
-// Pixel mode shows a banner with confetti; otherwise a toast.
+// A pixel banner with confetti (pixel.js). The toast is only a fallback if pixel.js didn't load.
 function celebrate(title, sub) {
-  if (window.PixelMode && window.PixelMode.prefs.on && window.PixelMode.celebrate) window.PixelMode.celebrate(title, sub);
+  if (window.PixelMode && window.PixelMode.celebrate) window.PixelMode.celebrate(title, sub);
   else showToast(sub ? `${title} ${sub}` : title, "is-success");
 }
 // What this browser has already celebrated, so each moment shows once.

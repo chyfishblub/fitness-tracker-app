@@ -138,12 +138,17 @@ async function testMealPersistence() {
 
   const sw = fs.readFileSync("sw.js", "utf8");
   const html = fs.readFileSync("index.html", "utf8");
-  assert.match(sw, /fitness-tracker-v12/);
+  assert.match(sw, /fitness-tracker-v13/);
   assert.match(sw, /\.\/pixel\.css/, "service worker caches the pixel skin");
   assert.match(sw, /\.\/js\/pixel\.js/);
   assert.match(html, /js\/app\.js[\s\S]*js\/pixel\.js[\s\S]*js\/auth\.js/, "pixel.js loads after app.js and before auth.js");
   assert.match(sw, /fetch\(event\.request\)[\s\S]*caches\.match\(event\.request\)/, "service worker uses network-first app assets");
   assert.match(html, /updateViaCache:\s*"none"/);
+  // The pixel look is the only look: fixed in the markup, no on/off switch left behind.
+  assert.match(html, /<html lang="en" class="pixel">/);
+  assert.doesNotMatch(html, /fitnessTracker_pixel_v1/);
+  const pixelJs = fs.readFileSync("js/pixel.js", "utf8");
+  assert.doesNotMatch(pixelJs, /"Pixel mode"/, "the Pixel mode switch is gone");
 }
 
 async function testAuthScreens() {

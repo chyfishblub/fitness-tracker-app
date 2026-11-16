@@ -4,8 +4,8 @@
   "description": "Daily quests for meals, workouts and rest. Earn XP for every small win.",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#F7F7F7",
-  "theme_color": "#58CC02",
+  "background_color": "#FFF6E0",
+  "theme_color": "#2A1F3D",
   "orientation": "portrait",
   "icons": [
     {

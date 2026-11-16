@@ -270,6 +270,22 @@ the import is skipped.
 
 ## Changelog
 
+### 2026-11-16 — Pixel is the only look (branch `pixel-theme`)
+- Fish decided the pixel game look is Juno's design, with no fallback to the old flat
+  green design.
+- `index.html` sets `<html class="pixel">` in the markup (the localStorage switch script is
+  gone). Theme colour is ink `#2A1F3D` with a black iOS status bar; `manifest.json` uses ink and
+  cream `#FFF6E0`.
+- `pixel.js`: the Pixel mode setting is removed. Old saves with `on:false` are ignored; the only
+  setting left is Game sounds. Celebrations always use the pixel banner.
+- New app icons (`icons/icon-192.png`, `icon-512.png`): a gold pixel "J" tile on ink, replacing
+  the green "F".
+- Removed the old design's unused Habits screen (`habitsTab`) and its helpers (`check`,
+  `sectionTitle`) from `app.js`.
+- `styles.css` stays as the layout base and `pixel.css` as the skin on top; both always apply.
+- Service worker cache `fitness-tracker-v13`. Tests check the class is fixed in the markup and
+  the switch is gone.
+
 ### 2026-11-16 — The buddy is a Spotter you name (branch `pixel-theme`)
 - Fish decided: **Juno is the app; the buddy is a separate Spotter each person names**
   (the step 2 recommendation in `docs/redesign/02-brand.md`).

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="pixel">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -8,22 +8,17 @@
 
   <!-- PWA: tells the browser this can be installed as an app -->
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#58CC02" />
+  <meta name="theme-color" content="#2A1F3D" />
 
   <!-- iOS-specific: lets it install to the iPhone home screen and run full-screen -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   <meta name="apple-mobile-web-app-title" content="Juno" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
 
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&amp;family=Pixelify+Sans:wght@400..700&amp;family=Press+Start+2P&amp;display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="pixel.css" />
-  <!-- Pixel mode is on unless turned off in Me → App settings. Set the class before first paint so there's no flash. -->
-  <script>
-    try { var px = JSON.parse(localStorage.getItem("fitnessTracker_pixel_v1") || "{}"); if (px.on !== false) document.documentElement.classList.add("pixel"); }
-    catch (e) { document.documentElement.classList.add("pixel"); }
-  </script>
 </head>
 <body>
   <div id="app"></div>
