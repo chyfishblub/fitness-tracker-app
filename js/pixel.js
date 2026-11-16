@@ -6,16 +6,18 @@
    app.js and auth.js render plain markup; a MutationObserver
    watches #app, and after every render this swaps emoji for pixel
    sprites, adds the animated city scene, the XP bar and the meal
-   hearts. pixel.css does the rest. The only setting is game sounds.
+   hearts. It also docks the Spotter above the tab bar and plays
+   the background tune. pixel.css does the rest. Settings: game
+   sounds and music.
    ============================================================ */
 
 (function () {
   "use strict";
 
-  // ---------- preferences (game sounds only) ----------
+  // ---------- preferences (game sounds and music) ----------
   const PREF_KEY = "fitnessTracker_pixel_v1";
   const prefs = (() => {
-    const fallback = { sound: true };
+    const fallback = { sound: true, music: true };
     try { return Object.assign(fallback, JSON.parse(localStorage.getItem(PREF_KEY)) || {}); } catch (e) { return fallback; }
   })();
   function savePrefs() { try { localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); } catch (e) {} }
@@ -106,6 +108,8 @@
       "...FFTTFF...", "....FFFF....", "..VVVVVVVV..", ".VVVVVVVVVV.", ".VVVVVVVVVV.", "............"],
     gamepad: ["..............", "..VVVVVVVVVV..", ".VVVVVVVVVVVV.", ".VVKVVVVVVRVV.", ".VKKKVVVVYVRV.",
       ".VVKVVVVVVYVV.", ".VVVVVVVVVVVV.", "..VVV....VVV..", ".............."],
+    note: ["...........", "....VVVVVV.", "....VVVVVV.", "....V....V.", "....V....V.", "..VVV..VVV.", ".VVVV.VVVV.",
+      ".VVV..VVV..", "..........."],
     speaker: ["............", "....SS...B..", "..SSSS....B.", ".SSSSS..B.B.", ".SSSSS..B.B.", ".SSSSS..B.B.",
       "..SSSS....B.", "....SS...B..", "............"],
 
@@ -210,11 +214,17 @@
 
   // ---------- 8-bit sound ----------
   let audioCtx = null;
-  function tone(freq, start, dur, type, vol, slideTo) {
-    if (!prefs.sound) return;
+  function audio() {
     try {
       audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
       if (audioCtx.state === "suspended") audioCtx.resume();
+      return audioCtx;
+    } catch (e) { return null; }
+  }
+  function tone(freq, start, dur, type, vol, slideTo) {
+    if (!prefs.sound) return;
+    try {
+      if (!audio()) return;
       const t = audioCtx.currentTime + start;
       const o = audioCtx.createOscillator(), g = audioCtx.createGain();
       o.type = type || "square";
@@ -233,6 +243,99 @@
     jump() { tone(320, 0, 0.16, "square", 0.03, 720); },
     clear() { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, i * 0.085, 0.16, "square", 0.04)); },
   };
+
+  // ---------- background music ----------
+  // "Juno Waltz": an original 32-bar tune in 3/4, written for Juno. A pulse-wave melody
+  // over an oom-pah-pah of triangle bass and soft chord plucks. Browsers only allow sound
+  // after a tap, so it starts on the first tap and pauses while the app is in the background.
+  const WALTZ = [
+    // [chord, melody] — melody tokens are note:beats (default 1); "-" is a rest. Every bar is 3 beats.
+    ["C", "E5 G5 C6"], ["C", "B5 G5:2"], ["F", "A5 C6 A5"], ["C", "G5:2 E5"],
+    ["Am", "E5:.5 F5:.5 G5 A5"], ["Dm", "F5 D5 F5"], ["G", "B4 D5 G5"], ["G", "F5:2 D5"],
+    ["C", "E5 G5 C6"], ["E7", "B5 G#5 E5"], ["Am", "A5 C6 E6"], ["F", "D6 C6 A5"],
+    ["Dm", "F5 A5 D6"], ["G", "C6 B5 G5"], ["C", "C6:.5 B5:.5 C6 G5"], ["C", "C6:2 -"],
+    ["F", "A5 A5:.5 B5:.5 C6"], ["F", "A5:2 F5"], ["C", "G5 G5:.5 A5:.5 G5"], ["C", "E5:2 C5"],
+    ["Dm", "D5 F5 A5"], ["G", "B5 A5 G5"], ["C", "E5 G5 C6"], ["C", "C6:2 B5"],
+    ["F", "A5 C6 F6"], ["F", "E6 D6 C6"], ["Em", "B5 G5 E5"], ["Am", "A5:2 C6"],
+    ["Dm", "D6 C6 A5"], ["G", "G5 B5 D6"], ["C", "C6 G5 E5"], ["C", "C5:2 -"],
+  ];
+  const CHORDS = {
+    C: ["C3", "E4 G4 C5"], F: ["F3", "F4 A4 C5"], G: ["G2", "D4 G4 B4"], Am: ["A2", "E4 A4 C5"],
+    Dm: ["D3", "D4 F4 A4"], E7: ["E3", "D4 E4 G#4"], Em: ["E3", "E4 G4 B4"],
+  };
+  const Music = (() => {
+    const SPB = 60 / 132;
+    const hz = (n) => {
+      const m = /^([A-G])(#?)(\d)$/.exec(n);
+      const midi = (Number(m[3]) + 1) * 12 + { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]] + (m[2] ? 1 : 0);
+      return 440 * Math.pow(2, (midi - 69) / 12);
+    };
+    let events = null, loopBeats = 0, ctx = null, master = null, wave = null, timer = 0, idx = 0, loopStart = 0, playing = false, armed = false;
+    function build() {
+      const ev = [];
+      WALTZ.forEach(([chord, tune], bar) => {
+        const b0 = bar * 3, [root, triad] = CHORDS[chord];
+        ev.push({ beat: b0, f: hz(root), dur: 0.9, wave: "triangle", vol: 0.09 });
+        [1, 2].forEach((k) => triad.split(" ").forEach((n) => ev.push({ beat: b0 + k, f: hz(n), dur: 0.3, wave: "square", vol: 0.008 })));
+        let at = b0;
+        tune.split(" ").forEach((tok) => {
+          const [n, len] = tok.split(":"), beats = len ? Number(len) : 1;
+          if (n !== "-") ev.push({ beat: at, f: hz(n), dur: beats * 0.92, wave: "pulse", vol: 0.026 });
+          at += beats;
+        });
+      });
+      loopBeats = WALTZ.length * 3;
+      return ev.sort((a, b) => a.beat - b.beat);
+    }
+    function pulseWave() {
+      // A 25% pulse: the bright, slightly nasal lead of old handheld consoles.
+      const n = 32, real = new Float32Array(n), imag = new Float32Array(n);
+      for (let k = 1; k < n; k++) { real[k] = Math.sin(2 * Math.PI * k * 0.25) / (k * Math.PI); imag[k] = (1 - Math.cos(2 * Math.PI * k * 0.25)) / (k * Math.PI); }
+      return ctx.createPeriodicWave(real, imag);
+    }
+    function voice(e, t) {
+      const o = ctx.createOscillator(), g = ctx.createGain(), dur = e.dur * SPB;
+      if (e.wave === "pulse") o.setPeriodicWave(wave || (wave = pulseWave())); else o.type = e.wave;
+      o.frequency.setValueAtTime(e.f, t);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(e.vol, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(e.vol * 0.55, t + Math.max(0.02, Math.min(dur * 0.5, 0.18)));
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(master);
+      o.start(t); o.stop(t + dur + 0.05);
+    }
+    function tick() {
+      const ahead = ctx.currentTime + 0.35;
+      for (;;) {
+        const e = events[idx], at = loopStart + e.beat * SPB;
+        if (at > ahead) break;
+        if (at >= ctx.currentTime - 0.02) voice(e, at);
+        if (++idx >= events.length) { idx = 0; loopStart += loopBeats * SPB; }
+      }
+    }
+    function start() {
+      if (playing || !armed || !prefs.music || document.hidden) return;
+      ctx = audio();
+      if (!ctx) return;
+      events = events || build();
+      master = ctx.createGain(); master.gain.value = 1; master.connect(ctx.destination);
+      idx = 0; loopStart = ctx.currentTime + 0.15; playing = true;
+      tick(); timer = setInterval(tick, 100);
+    }
+    function stop() {
+      if (!playing) return;
+      playing = false; clearInterval(timer);
+      const m = master;
+      m.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.05);
+      setTimeout(() => m.disconnect(), 600);
+    }
+    document.addEventListener("visibilitychange", () => (document.hidden ? stop() : start()));
+    return {
+      arm() { if (!armed) { armed = true; start(); } },
+      start, stop,
+      get playing() { return playing; },
+    };
+  })();
 
   // ---------- screen effects: particle bursts, floating text, banners ----------
   const CONFETTI = ["#FF5E7E", "#FFD84D", "#7BE05A", "#6FD3FF", "#9C7BFF", "#FF9E5E", "#4FE3C1", "#FFFFFF"];
@@ -311,7 +414,7 @@
     el.querySelector("strong").textContent = item[0];
     if (item[1]) el.querySelector("small").textContent = item[1];
     document.body.appendChild(el);
-    SFX.clear(); FX.confetti(); Scene.celebrate();
+    SFX.clear(); FX.confetti(); Scene.celebrate(); Dock.cheer();
     setTimeout(() => { el.remove(); nextBanner(); }, 2600);
   }
 
@@ -781,7 +884,7 @@
     }
     function onTap() {
       jump(); SFX.jump();
-      say(nextTip(mode, state));
+      if (mode === "home") Dock.tip(); else say(nextTip(mode, state));
       if (state.allDone && !reduceMotion) firework(player.x + 5, 30);
     }
 
@@ -809,12 +912,79 @@
         ensurePalette();
         resize();
         start();
-        if (!greeted) { greeted = true; setTimeout(() => say(nextTip(mode, state)), 900); }
+        if (!greeted && m === "auth") { greeted = true; setTimeout(() => say(nextTip(mode, state)), 900); }
       },
       unmount() { if (wrap && wrap.parentNode) wrap.remove(); stop(); },
       setState(s) { state = s; frame(); },
       say(text) { if (wrap && wrap.isConnected) say(text); },
       celebrate() { jump(); if (!reduceMotion) { firework(); setTimeout(() => firework(), 350); } },
+    };
+  })();
+
+  // ---------- the Spotter dock ----------
+  // The Spotter rides above the tab bar on every tab: it bobs, blinks, cheers when XP lands,
+  // and gives a tip when tapped. Its look and name come from app.js (spotterLook, spotterName).
+  const Dock = (() => {
+    let el = null, art = null, btn = null, bubble = null, lookKey = "", look = null;
+    let bubbleTimer = 0, cheerTimer = 0, cheering = false, greeted = false;
+    function build() {
+      el = document.createElement("div"); el.className = "px-spotter"; el.hidden = true;
+      bubble = document.createElement("div"); bubble.className = "px-spotter-bubble"; bubble.setAttribute("aria-live", "polite");
+      btn = document.createElement("button"); btn.type = "button"; btn.className = "px-spotter-btn";
+      art = document.createElement("span"); art.className = "px-spotter-art";
+      btn.appendChild(art); el.append(bubble, btn);
+      document.body.appendChild(el);
+      btn.addEventListener("click", () => { SFX.jump(); tip(); });
+      window.addEventListener("resize", place);
+      blinkLoop();
+    }
+    function draw(frame) { if (art && look) art.innerHTML = typeof spotterSVG === "function" ? spotterSVG(look, frame) : ""; }
+    function blinkLoop() {
+      setTimeout(() => {
+        if (!cheering && el && !el.hidden) { draw("blink"); setTimeout(() => { if (!cheering) draw("idle"); }, 150); }
+        blinkLoop();
+      }, 2600 + Math.random() * 2600);
+    }
+    function place() {
+      if (!el || el.hidden) return;
+      const nav = document.querySelector(".bottom-nav"), shell = document.querySelector(".app-shell");
+      if (nav) el.style.bottom = Math.max(70, Math.round(innerHeight - nav.getBoundingClientRect().top + 12)) + "px";
+      if (shell) el.style.right = Math.max(10, Math.round(innerWidth - shell.getBoundingClientRect().right + 14)) + "px";
+    }
+    function say(text) {
+      if (!bubble || !text) return;
+      const name = spotter();
+      bubble.innerHTML = name ? '<b class="px-bubble-name"></b><span></span>' : "<span></span>";
+      if (name) bubble.querySelector("b").textContent = name;
+      bubble.querySelector("span").textContent = text;
+      bubble.classList.add("is-visible");
+      clearTimeout(bubbleTimer);
+      bubbleTimer = setTimeout(() => bubble.classList.remove("is-visible"), 3200);
+    }
+    function cheer(text) {
+      if (!el || el.hidden) return;
+      cheering = true; draw("cheer");
+      el.classList.remove("is-cheer"); void el.offsetWidth; el.classList.add("is-cheer");
+      say(text);
+      clearTimeout(cheerTimer);
+      cheerTimer = setTimeout(() => { cheering = false; el.classList.remove("is-cheer"); draw("idle"); }, 1500);
+    }
+    function tip() { cheer(nextTip("home", score())); }
+    return {
+      sync(app) {
+        if (!el) build();
+        // At home the Spotter is in the room, so the dock steps aside.
+        const show = !!app.querySelector(".bottom-nav") && !app.querySelector(".sheet-backdrop") && !app.querySelector(".home-room");
+        el.hidden = !show;
+        if (!show) return;
+        look = typeof spotterLook === "function" ? spotterLook() : null;
+        const key = look ? look.kind + "|" + look.color : "";
+        if (key !== lookKey) { lookKey = key; draw(cheering ? "cheer" : "idle"); }
+        btn.setAttribute("aria-label", `${spotter() || "Your Spotter"}. Tap for a tip.`);
+        place();
+        if (!greeted) { greeted = true; setTimeout(() => say(nextTip("home", score())), 1000); }
+      },
+      cheer, tip,
     };
   })();
 
@@ -827,6 +997,7 @@
     "🏝": ["island", "peak week"], "⚡": ["bolt", "bolt"], "◷": ["clock", "clock"], "✓": ["check", "done"], "✕": ["cross", "close"],
     "🍗": ["drumstick", "protein"], "💧": ["drop", "water"], "😴": ["moon", "sleep"], "👟": ["shoe", "steps"], "🙅": ["nope", "no snacking"],
     "⭐": ["star", "star"],
+    "🏠": ["house", "home"],
   };
   const EMOJI_RE = new RegExp("(" + Object.keys(EMOJI).join("|") + ")\\uFE0F?", "gu");
   const NAV = { dashboard: "house", workout: "dumbbell", plan: "scroll", progress: "trophy", profile: "hero" };
@@ -911,7 +1082,7 @@
       else if (s.goalsDone === s.goalsTotal && lastScore.goalsDone < s.goalsTotal) clearText = "Habits clear!";
       else if (s.workoutDone && !lastScore.workoutDone) clearText = "Workout cleared!";
       if (clearText) setTimeout(() => banner(clearText), 250);
-      else Scene.say(pick(REACTIONS));
+      else Dock.cheer(pick(REACTIONS));
     }
     lastScore = s;
   }
@@ -923,7 +1094,8 @@
     if (!anchor) return;
     const row = (act, iconHtml, title, sub, on) =>
       `<button class="settings-row" data-px-act="${act}" aria-pressed="${on}"><span class="settings-icon">${iconHtml}</span><span><strong>${title}</strong><small>${sub}</small></span><i>${on ? "On" : "Off"}</i></button>`;
-    const html = row("sound", icon("speaker", "sound"), "Game sounds", "8-bit blips when you earn XP", prefs.sound);
+    const html = row("sound", icon("speaker", "sound"), "Game sounds", "8-bit blips when you earn XP", prefs.sound) +
+      row("music", icon("note", "music"), "Music", "A little chiptune waltz while you play", prefs.music);
     anchor.insertAdjacentHTML("beforebegin", html);
   }
 
@@ -943,6 +1115,7 @@
         svg.replaceWith(s);
       });
       mealHearts(app);
+      Dock.sync(app);
       hud(app);
       placeScene(app);
     } finally {
@@ -960,7 +1133,7 @@
   if (appRoot) { observer.observe(appRoot, { childList: true, subtree: true }); decorate(); }
 
   // ---------- input feedback ----------
-  document.addEventListener("pointerdown", (e) => { lastPointer = { x: e.clientX, y: e.clientY }; }, true);
+  document.addEventListener("pointerdown", (e) => { lastPointer = { x: e.clientX, y: e.clientY }; Music.arm(); }, true);
   document.addEventListener("click", (e) => {
     const own = e.target.closest("[data-px-act]");
     if (own) {
@@ -969,6 +1142,11 @@
         own.setAttribute("aria-pressed", String(prefs.sound));
         own.querySelector("i").textContent = prefs.sound ? "On" : "Off";
         if (prefs.sound) SFX.coin();
+      } else if (own.dataset.pxAct === "music") {
+        prefs.music = !prefs.music; savePrefs();
+        own.setAttribute("aria-pressed", String(prefs.music));
+        own.querySelector("i").textContent = prefs.music ? "On" : "Off";
+        if (prefs.music) { Music.arm(); Music.start(); } else Music.stop();
       }
       return;
     }
@@ -1006,5 +1184,5 @@
   }
 
 
-  window.PixelMode = { prefs, spriteSVG, SPRITES, celebrate: (title, sub) => banner(title, sub) };
+  window.PixelMode = { prefs, spriteSVG, SPRITES, Music, WALTZ, celebrate: (title, sub) => banner(title, sub) };
 })();

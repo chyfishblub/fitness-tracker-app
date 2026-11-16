@@ -62,7 +62,7 @@ function planDayForDate(date) {
 function buildDays() {
   const today = todayStr();
   const days = {};
-  const get = (date) => (days[date] ||= { date, meals: new Set(), mealCount: 0, photos: 0, habits: 0, sets: [] });
+  const get = (date) => (days[date] ||= { date, meals: new Set(), mealCount: 0, photos: 0, habits: 0, activeHabits: 0, sets: [] });
   const history = DB.history || { meals: [], sets: [] };
 
   history.meals.forEach((m) => { if (m.log_date < today) addMeal(get(m.log_date), m); });
@@ -71,7 +71,10 @@ function buildDays() {
   DB.setLogs.forEach((s) => get(today).sets.push({ ...s, log_date: today }));
   habitKeySet().forEach((key) => {
     const [date, id] = key.split("|");
-    if (habitDefs.some((h) => h.id === id)) get(date).habits++;
+    // Retired habits keep the XP they earned; only today's list counts toward "every box ticked".
+    const active = habitDefs.some((h) => h.id === id);
+    if (active || retiredHabitIds.includes(id)) get(date).habits++;
+    if (active) get(date).activeHabits++;
   });
 
   Object.values(days).forEach((d) => {
@@ -138,7 +141,7 @@ function gameState() {
     "photo-10": photos >= 10,
     "first-workout": list.some((d) => d.cleared && !d.isRest),
     "rest-day": list.some((d) => d.cleared && d.isRest),
-    "all-habits": list.some((d) => d.habits >= habitDefs.length),
+    "all-habits": list.some((d) => d.activeHabits >= habitDefs.length),
     "high-score": highScores > 0,
     "week-star": weeks.some((w) => w.star),
     boss: weeks.some((w) => w.bossBeaten),

@@ -619,3 +619,26 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .name-chips { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 4px; }
 .name-chip { min-height:36px; padding:6px 14px; border:2px solid var(--line); border-radius:99px; background:#fff; color:var(--ink); font-family:inherit; font-size:13px; font-weight:800; cursor:pointer; }
 .onboarding-fields label[for="obSpotter"] { margin-top:16px; }
+
+/* The Spotter: Me card, picker, onboarding preview (pixel.css skins them; pixel.js adds the dock) */
+.spotter-card { display:grid; gap:14px; padding:17px; border:1px solid var(--line); border-radius:19px; background:var(--surface); }
+.spotter-hero { display:flex; align-items:center; gap:16px; }
+.spotter-hero p { margin:0; color:var(--grey); font-size:14px; font-weight:700; line-height:1.45; }
+.spotter-portrait { flex-shrink:0; display:block; width:80px; height:80px; line-height:0; }
+.spotter-portrait svg { display:block; width:100%; height:100%; image-rendering:pixelated; }
+.spotter-form { display:grid; gap:8px; }
+.spotter-form .field-label { margin-top:6px; }
+.spotter-picks { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; }
+.spotter-pick { display:grid; place-items:center; aspect-ratio:1; min-height:48px; padding:6px; border:2px solid var(--line); border-radius:12px; background:#fff; cursor:pointer; }
+.spotter-pick svg { display:block; width:100%; max-width:48px; height:auto; }
+.spotter-pick.is-selected { border-color:var(--ink); background:#F3EBFF; }
+.spotter-swatches { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+.spotter-swatch { width:36px; height:36px; border:2px solid var(--line); border-radius:50%; background:var(--swatch); cursor:pointer; }
+.spotter-swatch.is-selected { border-color:var(--ink); box-shadow:0 0 0 3px #fff, 0 0 0 5px var(--ink); }
+.spotter-actions { display:grid; grid-template-columns:1fr 1.4fr; gap:10px; margin-top:10px; }
+.spotter-onboard { display:flex; align-items:center; gap:12px; margin:16px 0 4px; }
+.spotter-onboard .spotter-portrait { width:64px; height:64px; }
+.spotter-onboard > div { flex:1; min-width:0; }
+.spotter-onboard .spotter-picks { gap:10px; }
+.spotter-onboard .spotter-swatches { gap:10px; margin-top:12px; }
+.spotter-onboard .spotter-swatch { width:28px; height:28px; }

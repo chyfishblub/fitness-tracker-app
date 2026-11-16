@@ -18,7 +18,7 @@ function appHarness() {
     window: {}, navigator: {}, getLastSetLogs: async () => [],
   };
   vm.createContext(context);
-  for (const file of ["js/data.js", "js/plan.js", "js/game.js", "js/app.js"]) {
+  for (const file of ["js/data.js", "js/plan.js", "js/game.js", "js/spotter.js", "js/home.js", "js/app.js"]) {
     vm.runInContext(fs.readFileSync(file, "utf8"), context, { filename: file });
   }
   vm.runInContext(`
@@ -138,7 +138,8 @@ async function testMealPersistence() {
 
   const sw = fs.readFileSync("sw.js", "utf8");
   const html = fs.readFileSync("index.html", "utf8");
-  assert.match(sw, /fitness-tracker-v14/);
+  assert.match(sw, /fitness-tracker-v17/);
+  assert.match(sw, /"\.\/js\/home\.js"/, "home.js is cached for offline use");
   assert.match(sw, /\.\/pixel\.css/, "service worker caches the pixel skin");
   assert.match(sw, /\.\/js\/pixel\.js/);
   assert.match(html, /js\/app\.js[\s\S]*js\/pixel\.js[\s\S]*js\/auth\.js/, "pixel.js loads after app.js and before auth.js");
@@ -149,6 +150,14 @@ async function testMealPersistence() {
   assert.doesNotMatch(html, /fitnessTracker_pixel_v1/);
   const pixelJs = fs.readFileSync("js/pixel.js", "utf8");
   assert.doesNotMatch(pixelJs, /"Pixel mode"/, "the Pixel mode switch is gone");
+  assert.match(html, /js\/spotter\.js[\s\S]*js\/app\.js/, "spotter.js loads before app.js");
+  assert.match(html, /js\/game\.js[\s\S]*js\/spotter\.js[\s\S]*js\/home\.js[\s\S]*js\/app\.js/, "home.js loads after game.js and spotter.js, before app.js");
+  assert.match(sw, /\.\/js\/spotter\.js/);
+  // The background tune: every bar of the waltz is three beats.
+  const waltz = vm.runInNewContext(pixelJs.match(/const WALTZ = (\[[\s\S]*?\n  \]);/)[1]);
+  assert.equal(waltz.length, 32);
+  waltz.forEach(([, tune], i) => assert.equal(tune.split(" ").reduce((sum, t) => sum + Number(t.split(":")[1] || 1), 0), 3, `bar ${i + 1} is 3 beats`));
+  assert.match(pixelJs, /row\("music"/, "Me has a Music switch");
 }
 
 async function testAuthScreens() {
@@ -162,6 +171,7 @@ async function testAuthScreens() {
     upsertWeightEntry: async () => {}, initApp() {},
   };
   vm.createContext(context);
+  vm.runInContext(fs.readFileSync("js/spotter.js", "utf8"), context, { filename: "js/spotter.js" });
   vm.runInContext(fs.readFileSync("js/auth.js", "utf8"), context, { filename: "js/auth.js" });
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.match(appNode.innerHTML, /Your fitness buddy/);
@@ -175,10 +185,12 @@ async function testAuthScreens() {
   assert.doesNotMatch(appNode.innerHTML, /obCurrentWeight/, "weight is not asked for on the first step");
   assert.match(appNode.innerHTML, /Name your Spotter/, "the buddy is a Spotter the player names");
   assert.match(appNode.innerHTML, /data-spotter="Bean"/);
+  assert.match(appNode.innerHTML, /data-spotter-kind="frog"/, "onboarding lets the player pick a buddy");
+  assert.match(appNode.innerHTML, /data-spotter-color="mint"/);
 }
 
 async function testGameLayer() {
-  const { context, appNode } = appHarness();
+  const { context, handlers, appNode } = appHarness();
   const run = (code) => vm.runInContext(code, context);
   // Levels: 100 XP for level 2, then 150 more for level 3.
   assert.deepEqual(JSON.parse(JSON.stringify(run("levelFor(0)"))), { level: 1, into: 0, need: 100 });
@@ -212,15 +224,50 @@ async function testGameLayer() {
   run(`ui.activeTab = "dashboard"; render();`);
   assert.match(appNode.innerHTML, /class="next-quest"/, "Today opens with one next step");
   assert.match(appNode.innerHTML, /WEEKLY BOSS/);
+  // Workout is quest 2, habits are quest 3 and sit below it; the habit list is short.
+  assert.ok(appNode.innerHTML.indexOf("QUEST 2 · ") < appNode.innerHTML.indexOf("QUEST 3 · DAILY HABITS"));
+  assert.match(appNode.innerHTML, /QUEST 2 · (WORKOUT|REST DAY)/);
+  assert.ok(run(`habitDefs.length`) <= 3, "three habits at most");
+  assert.doesNotMatch(appNode.innerHTML, /Hit 120g protein|Drink your water|Snacks I planned/);
   assert.doesNotMatch(appNode.innerHTML, /workout-goal/, "the workout is no longer repeated as a habit tile");
   assert.doesNotMatch(appNode.innerHTML, /of 3 logged/, "the meal count isn't repeated in the ring");
   run(`ui.activeTab = "profile"; render();`);
   assert.match(appNode.innerHTML, /PLAYER LEVEL/);
   assert.match(appNode.innerHTML, /Your collection/);
   assert.match(appNode.innerHTML, /class="level-chip"/);
-  assert.match(appNode.innerHTML, /Give your buddy a name/, "Me offers to name the Spotter");
-  run(`AUTH.user.user_metadata = { spotter_name: "Bean" }; render();`);
-  assert.match(appNode.innerHTML, /Bean · tap to rename/);
+  assert.match(appNode.innerHTML, /class="spotter-card"/, "Me has a Spotter card");
+  assert.match(appNode.innerHTML, /Name and style your buddy/);
+  run(`AUTH.user.user_metadata = { spotter_name: "Bean", spotter_look: { kind: "frog", color: "mint" } }; render();`);
+  assert.match(appNode.innerHTML, /Change name or look/);
+  assert.match(appNode.innerHTML, /Bean cheers every quest/);
+  assert.equal(run(`JSON.stringify(spotterLook())`), JSON.stringify({ kind: "frog", color: "mint" }));
+  assert.equal(run(`JSON.stringify(normalizeSpotterLook({ kind: "dragon", color: "plaid" }))`), JSON.stringify({ kind: "bunny", color: "lilac" }), "unknown looks fall back to the default");
+  // Editing: the picker restyles the draft and keeps the typed name.
+  run(`ui.spotterDraft = { name: "Bean", kind: "frog", color: "mint" }; render();`);
+  assert.match(appNode.innerHTML, /id="spotterInput"/);
+  assert.match(appNode.innerHTML, /data-spotter-kind="frog" aria-pressed="true"/);
+  const nameInput = { value: "Beanie" };
+  const byId = context.document.getElementById;
+  context.document.getElementById = (id) => id === "spotterInput" ? nameInput : byId(id);
+  const pickTarget = (data) => ({ closest: (sel) => sel.includes("spotter-kind") ? { dataset: data } : null });
+  await handlers.click[0]({ target: pickTarget({ spotterKind: "cat" }) });
+  await handlers.click[0]({ target: pickTarget({ spotterColor: "peach" }) });
+  assert.equal(run(`JSON.stringify(ui.spotterDraft)`), JSON.stringify({ name: "Beanie", kind: "cat", color: "peach" }));
+  let saved = null;
+  context.saveSpotter = async (fields) => { saved = fields; return { id: "user-1", user_metadata: { spotter_name: fields.name, spotter_look: fields.look } }; };
+  context.showToast = () => {};
+  await handlers.click[0]({ target: { closest: (sel) => sel === "[data-act]" ? { dataset: { act: "saveSpotter" } } : null } });
+  assert.deepEqual(JSON.parse(JSON.stringify(saved)), { name: "Beanie", look: { kind: "cat", color: "peach" } });
+  assert.equal(run(`ui.spotterDraft`), null);
+  context.document.getElementById = byId;
+  // Every buddy draws in every colour and frame, and the frames differ.
+  const looks = run(`Object.keys(SPOTTER_KINDS).flatMap((k) => Object.keys(SPOTTER_COLORS).map((c) => ({ kind: k, color: c })))`);
+  for (const look of looks) {
+    const [idle, blink, cheer] = ["idle", "blink", "cheer"].map((f) => run(`spotterSVG(${JSON.stringify(look)}, "${f}")`));
+    assert.match(idle, /^<svg viewBox="0 0 16 16"/);
+    assert.notEqual(idle, blink, `${look.kind} blinks`);
+    assert.notEqual(blink, cheer, `${look.kind} cheers`);
+  }
 
   // A quest with no weight goal still renders.
   run(`DB.goal.start_weight = null; DB.goal.goal_weight = null; render(); ui.activeTab = "progress"; render();`);
@@ -242,8 +289,89 @@ async function testGameLayer() {
   assert.equal(logged[1].reps, 12, "typed reps win over the hint");
 }
 
+async function testHome() {
+  const { context, handlers, appNode } = appHarness();
+  const run = (code) => vm.runInContext(code, context);
+  run(`AUTH.user.user_metadata = { spotter_name: "Bean", spotter_look: { kind: "frog", color: "mint" }, home_items: ["rug", "sofa", "nonsense"] };`);
+  const fakeGame = (level, badges) => JSON.stringify({ level, badges: run("BADGES").map((b) => ({ ...b, earned: badges.includes(b.id) })) });
+  const states = (level, badges) => Object.fromEntries(run(`furnitureList(${fakeGame(level, badges)}).map((p) => [p.id, p.state])`));
+
+  // Every piece has art, a fixed spot inside the room, and an unlock that exists.
+  const ids = run("FURNITURE_ORDER");
+  assert.equal(ids.length, 14);
+  assert.deepEqual(JSON.parse(run("JSON.stringify(FURNITURE_LAYERS.slice().sort())")), JSON.parse(JSON.stringify(ids)).sort(), "every piece is drawn in the room");
+  for (const id of ids) {
+    const f = run(`FURNITURE["${id}"]`);
+    assert.ok(f.x >= 0 && f.y >= 0 && f.x + f.w <= 200 && f.y + f.h <= 150, `${id} fits in the room`);
+    if (f.unlock.type === "badge") assert.ok(run(`BADGES.some((b) => b.id === "${f.unlock.id}")`), `${id} unlocks from a real badge`);
+    assert.match(run(`furnitureSVG("${id}")`), /^<svg viewBox="0 0 48 48"[\s\S]*<rect/);
+  }
+
+  // Level 1, no badges: the starters are in, a claimed piece stays in even before it's earned again, the rest are locked.
+  let st = states(1, []);
+  assert.equal(st.bed, "in"); assert.equal(st.window, "in");
+  assert.equal(st.rug, "in"); assert.equal(st.sofa, "in", "claimed pieces are never taken back");
+  assert.equal(st.lamp, "locked"); assert.equal(st.rack, "locked");
+  assert.deepEqual(JSON.parse(run("JSON.stringify(homeClaimedIds())")), ["rug", "sofa"], "unknown ids are ignored");
+  // Level 4 with First clear: the plant, lamp and dumbbell rack are ready to claim.
+  st = states(4, ["first-workout"]);
+  assert.equal(st.plant, "ready"); assert.equal(st.lamp, "ready"); assert.equal(st.rack, "ready");
+  assert.equal(st.shelf, "locked");
+
+  // Today has the door; Home renders the room, the Spotter, claim tags and the catalogue.
+  run(`ui.activeTab = "dashboard"; render();`);
+  assert.match(appNode.innerHTML, /data-act="goHome"/);
+  run(`ui.activeTab = "home"; render();`);
+  const home = appNode.innerHTML;
+  assert.match(home, /class="home-room"/);
+  assert.match(home, /class="home-room-art"/);
+  assert.match(home, /class="home-buddy/);
+  assert.match(home, /Bean/);
+  assert.match(home, /data-act="leaveHome"/);
+  // Pat, dance and nap are icon buttons in the room's action bar, inside the frame.
+  assert.match(home, /<div class="home-room">[\s\S]*<div class="home-hud"[\s\S]*data-v="pat"[\s\S]*data-v="dance"[\s\S]*data-v="nap"[\s\S]*<\/div><\/div>\s*<section class="home-talk">/);
+  assert.doesNotMatch(home, /home-acts/);
+  // Icon outlines aren't clipped: every coloured pixel has a ring of room for its ink outline.
+  for (const k of ["pat", "dance", "nap"]) {
+    const svg = run(`homeIconSVG("${k}")`);
+    const [vw, vh] = svg.match(/viewBox="0 0 (\d+) (\d+)"/).slice(1).map(Number);
+    const fills = [...svg.matchAll(/x="(\d+)" y="(\d+)" width="1" height="1" fill="([^"]+)"/g)].filter((m) => m[3] !== "#2A1F3D").map((m) => [Number(m[1]), Number(m[2])]);
+    assert.ok(fills.length > 0);
+    assert.ok(fills.every(([x, y]) => x > 0 && y > 0 && x < vw - 1 && y < vh - 1), `${k} icon has room for its outline`);
+  }
+  assert.match(home, /aria-current="page"[^>]*>[\s\S]*?Today/, "Today stays lit in the nav at home");
+  assert.equal((home.match(/class="home-tile /g) || []).length, 14);
+  assert.doesNotMatch(home, /streak|guilty|cheat\b|behind|failed|missed|undefined/i);
+
+  // Claiming: a locked piece can't be claimed; a ready one is saved and lands in the room.
+  let saved = null;
+  context.saveHomeItems = async (items) => { saved = items; return { id: "user-1", user_metadata: { spotter_name: "Bean", home_items: items } }; };
+  context.showToast = () => {};
+  const click = (act, v) => handlers.click[0]({ target: { closest: (sel) => sel === "[data-act]" ? { dataset: { act, v } } : null } });
+  await click("claimFurniture", "arcade");
+  assert.equal(saved, null, "a locked piece isn't claimed");
+  run(`realGameState = gameState; gameState = () => (${fakeGame(4, ["first-workout"])});`);
+  await click("claimFurniture", "lamp");
+  assert.deepEqual(JSON.parse(JSON.stringify(saved)), ["rug", "sofa", "lamp"]);
+  assert.equal(run(`furnitureList(gameState()).find((p) => p.id === "lamp").state`), "in");
+  assert.match(appNode.innerHTML, /The lamp looks perfect there!/);
+
+  // Pat, dance and nap change what the Spotter does and says.
+  await click("homeAct", "nap");
+  assert.match(appNode.innerHTML, /home-buddy is-nap/);
+  assert.match(appNode.innerHTML, /home-zz/);
+  assert.match(appNode.innerHTML, /home-hud-btn is-on" data-act="homeAct" data-v="nap" aria-pressed="true"/);
+  await click("homeAct", "pat");
+  assert.match(appNode.innerHTML, /home-heart/);
+  run(`gameState = realGameState;`);
+  await click("leaveHome");
+  assert.equal(run("ui.activeTab"), "dashboard");
+  assert.equal(run("ui.homeAct"), null);
+}
+
 Promise.resolve()
   .then(testSignedInApp)
+  .then(testHome)
   .then(testGameLayer)
   .then(testMealPersistence)
   .then(testAuthScreens)

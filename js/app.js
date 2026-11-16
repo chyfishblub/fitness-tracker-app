@@ -34,7 +34,7 @@ if (!ui.mealHistoryMonth) ui.mealHistoryMonth = todayStr().slice(0, 7);
 if (!ui.mealHistorySelectedDate) ui.mealHistorySelectedDate = todayStr();
 if (ui.mealHistoryLoading == null) ui.mealHistoryLoading = false;
 function saveUi() {
-  const savedTab = ui.activeTab === "mealHistory" ? "dashboard" : ui.activeTab;
+  const savedTab = ui.activeTab === "mealHistory" || ui.activeTab === "home" ? "dashboard" : ui.activeTab;
   try { localStorage.setItem(UI_KEY, JSON.stringify({ activeTab: savedTab, selectedWeek: ui.selectedWeek, selectedDay: ui.selectedDay, planSection: ui.planSection })); } catch (e) {}
 }
 
@@ -141,6 +141,29 @@ function spotterName() {
   const name = AUTH.user && AUTH.user.user_metadata && AUTH.user.user_metadata.spotter_name;
   return name ? String(name).trim() : "";
 }
+// The creature and colour (js/spotter.js). Bunny in lilac until the person picks.
+function spotterLook() {
+  return normalizeSpotterLook(AUTH.user && AUTH.user.user_metadata && AUTH.user.user_metadata.spotter_look);
+}
+
+// The Spotter card on Me: the buddy at full size, and the place to rename and restyle it.
+function spotterCard() {
+  const name = spotterName();
+  const editing = !!ui.spotterDraft;
+  const look = editing ? normalizeSpotterLook(ui.spotterDraft) : spotterLook();
+  let h = `<section class="spotter-card"><div class="card-heading"><div><span>YOUR SPOTTER</span><h2>${name ? escapeHtml(name) : "Your buddy"}</h2></div></div>
+    <div class="spotter-hero"><span class="spotter-portrait">${spotterSVG(look, "idle")}</span>
+      <p>${name ? `${escapeHtml(name)} cheers every quest you clear, on every screen. Tap ${escapeHtml(name)} for a tip.` : "Your buddy cheers every quest you clear. Give them a name and a look."}</p></div>`;
+  if (editing) {
+    h += `<div class="spotter-form"><label class="field-label" for="spotterInput">Name</label>
+      <input id="spotterInput" maxlength="20" autocomplete="off" placeholder="e.g. Mo, Bean, Captain" value="${escapeHtml(ui.spotterDraft.name)}"/>
+      <span class="field-label">Buddy</span>${spotterPickerHTML(look)}
+      <div class="spotter-actions"><button class="secondary-button" data-act="cancelSpotter">Cancel</button><button class="btn3d primary-button" data-act="saveSpotter" style="--sd:var(--green-d)">Save</button></div></div>`;
+  } else {
+    h += `<button class="secondary-button" data-act="editSpotter">${name ? "Change name or look" : "Name and style your buddy"}</button>`;
+  }
+  return h + "</section>";
+}
 
 // ---------- small render helpers ----------
 function appLoadingState() {
@@ -205,9 +228,10 @@ function dashboard(game) {
   return `<div class="home-stack">
     ${screenHeading("TODAY'S QUESTS", `${greetingFor(new Date().getHours())}, ${first}`, goalLine(today))}
     ${nextQuestCard(today)}
+    ${homeDoorButton(game)}
     ${mealJournalCard(today)}
-    ${dailyGoalsCard(today)}
     ${workoutPlanCard()}
+    ${dailyGoalsCard(today)}
     ${game ? weekCard(game) : ""}
   </div>`;
 }
@@ -433,7 +457,7 @@ function dailyGoalsCard(today) {
   const total = habitDefs.length;
   const pct = Math.round((done / total) * 100);
   let h = `<section class="card home-card daily-goals-card ${done === total ? "all-complete" : ""}">
-    <div class="home-section-heading"><div><div class="home-eyebrow">QUEST 2 · DAILY HABITS</div><div class="home-section-title">Tick off your habits</div></div><span class="home-count-badge is-orange">${done}/${total}</span></div>
+    <div class="home-section-heading"><div><div class="home-eyebrow">QUEST 3 · DAILY HABITS</div><div class="home-section-title">Tick off your habits</div></div><span class="home-count-badge is-orange">${done}/${total}</span></div>
     <div class="goal-progress"><span style="width:${pct}%"></span></div>
     <div class="daily-goal-list">`;
   habitDefs.forEach((hb) => {
@@ -442,7 +466,7 @@ function dailyGoalsCard(today) {
       <span class="daily-goal-icon">${hb.icon}</span><span class="daily-goal-label">${hb.label}</span><span class="daily-goal-xp">${on ? "" : `+${XP.habit}`}</span><span class="daily-goal-check">${on ? "✓" : ""}</span>
     </button>`;
   });
-  h += `</div>${done === total ? '<div class="completion-note">✨ Every habit ticked. Quest 2 cleared!</div>' : ""}</section>`;
+  h += `</div>${done === total ? '<div class="completion-note">✨ Every habit ticked. Quest 3 cleared!</div>' : ""}</section>`;
   return h;
 }
 
@@ -451,7 +475,7 @@ function workoutPlanCard() {
   const pct = workout.total ? Math.round((workout.done / workout.total) * 100) : 100;
   return `<section class="today-workout-card tap" data-act="todayWorkout" role="button" tabindex="0" aria-label="Open today's workout: ${escapeHtml(workout.day.focus)}" style="--workout-color:${workout.day.color}">
     <div class="workout-card-icon">${workout.day.type === "rest" ? "🌿" : "🏋️"}</div>
-    <div class="workout-card-copy"><div class="workout-card-eyebrow">QUEST 3 · ${workout.day.type === "rest" ? "REST DAY" : "WORKOUT"}</div>
+    <div class="workout-card-copy"><div class="workout-card-eyebrow">QUEST 2 · ${workout.day.type === "rest" ? "REST DAY" : "WORKOUT"}</div>
       <div class="workout-card-title">${escapeHtml(workout.day.focus)}</div>
       <div class="workout-card-meta">${!workout.total ? "Nothing planned. Enjoy the rest." : workout.complete ? `Cleared · +${XP.workout} XP` : workout.day.type === "rest" ? `${workout.done} of ${workout.total} rest moves · walk and stretch for XP` : `${workout.total} moves · ${workout.done} done · +${XP.workout} XP to clear`}</div>
       <div class="workout-card-progress"><span style="width:${pct}%"></span></div>
@@ -869,7 +893,7 @@ function profileTab(game) {
   return `<div class="screen-stack profile-screen">
     ${screenHeading("ME", "Your player card", "Your quest, reminders, account and settings.")}
     <section class="profile-identity"><div class="profile-avatar">${escapeHtml(initial)}</div><div><h2>${escapeHtml(name)}</h2><p>${escapeHtml(accountLabel)}</p></div></section>
-    ${game ? playerLevelCard(game) + badgeCard(game) : ""}
+    ${game ? playerLevelCard(game) : ""}${spotterCard()}${game ? badgeCard(game) : ""}
     <section class="goal-detail-card">
       <div class="card-heading"><div><span>MAIN QUEST</span><h2>${escapeHtml(goal.title)}</h2></div>${goal.goal_weight != null ? `<div class="goal-target">${goal.goal_weight} kg</div>` : ""}</div>
       ${hasWeightGoal ? `<div class="goal-route"><span>${goal.start_weight} kg</span><i><b style="width:${goalProgress}%"></b></i><span>${goal.goal_weight} kg</span></div>` : ""}
@@ -879,8 +903,6 @@ function profileTab(game) {
     </section>
     <section class="settings-card"><div class="card-heading"><div><span>PREFERENCES</span><h2>App settings</h2></div></div>
       <button class="settings-row" data-act="togglePush"><span class="settings-icon">🔔</span><span><strong>Meal reminders</strong><small>A gentle ping at breakfast, lunch and dinner</small></span><i>${ui.pushEnabled ? "On" : "Off"}</i></button>
-      <button class="settings-row" data-act="editSpotter" aria-expanded="${!!ui.spotterEdit}"><span class="settings-icon">🌱</span><span><strong>Your Spotter</strong><small>${spotterName() ? `${escapeHtml(spotterName())} · tap to rename` : "Give your buddy a name"}</small></span><i>›</i></button>
-      ${ui.spotterEdit ? `<div class="inline-form spotter-form"><label class="field-label" for="spotterInput">Spotter's name</label><input id="spotterInput" maxlength="20" autocomplete="off" placeholder="e.g. Mo, Bean, Captain" value="${escapeHtml(spotterName())}"/><button class="btn3d primary-button" data-act="saveSpotter" style="--sd:var(--green-d)">Save name</button></div>` : ""}
       <button class="settings-row danger" data-act="signOut"><span class="settings-icon">↗</span><span><strong>Sign out</strong><small>${isGuest ? "Guest progress can't be recovered after you sign out" : "Sign out on this device. Your history is kept."}</small></span><i>›</i></button>
     </section>
     <details class="advanced-card"><summary><span><strong>Advanced</strong><small>Import old data</small></span><i>＋</i></summary>
@@ -1051,10 +1073,10 @@ function urlBase64ToUint8Array(base64String) {
 function render() {
   if (!DB.goal) return;
   const tabs = [["dashboard", "Today"], ["workout", "Train"], ["plan", "Plan"], ["progress", "Progress"], ["profile", "Me"]];
-  if (!tabs.some((t) => t[0] === ui.activeTab) && ui.activeTab !== "mealHistory") ui.activeTab = "dashboard";
+  if (!tabs.some((t) => t[0] === ui.activeTab) && ui.activeTab !== "mealHistory" && ui.activeTab !== "home") ui.activeTab = "dashboard";
   let nav = '<nav class="bottom-nav" aria-label="Primary navigation">';
   tabs.forEach((t) => {
-    const a = ui.activeTab === t[0] || (ui.activeTab === "mealHistory" && t[0] === "dashboard");
+    const a = ui.activeTab === t[0] || ((ui.activeTab === "mealHistory" || ui.activeTab === "home") && t[0] === "dashboard");
     nav += `<button data-act="tab" data-v="${t[0]}" class="${a ? "is-active" : ""}" aria-current="${a ? "page" : "false"}">${navIcon(t[0])}<span>${t[1]}</span></button>`;
   });
   nav += "</nav>";
@@ -1063,6 +1085,7 @@ function render() {
   let body = "";
   if (ui.activeTab === "dashboard") body = dashboard(game);
   else if (ui.activeTab === "mealHistory") body = mealHistoryTab();
+  else if (ui.activeTab === "home") body = homeTab(game);
   else if (ui.activeTab === "workout") body = workoutTab();
   else if (ui.activeTab === "plan") body = planTab();
   else if (ui.activeTab === "progress") body = progressTab(game);
@@ -1117,6 +1140,16 @@ function checkUnlocks(game) {
 
 // ---------- EVENTS ----------
 document.addEventListener("click", async (e) => {
+  // The Spotter picker on Me restyles the draft in place; the name typed so far is kept.
+  const pick = e.target.closest && e.target.closest(".spotter-card [data-spotter-kind], .spotter-card [data-spotter-color]");
+  if (pick && ui.spotterDraft) {
+    const input = document.getElementById("spotterInput");
+    if (input) ui.spotterDraft.name = input.value;
+    if (pick.dataset.spotterKind) ui.spotterDraft.kind = pick.dataset.spotterKind;
+    if (pick.dataset.spotterColor) ui.spotterDraft.color = pick.dataset.spotterColor;
+    render();
+    return;
+  }
   const btn = e.target.closest("[data-act]"); if (!btn) return;
   const act = btn.dataset.act;
 
@@ -1193,14 +1226,37 @@ document.addEventListener("click", async (e) => {
     await saveOverride(weekIndex, dayIndex, slot, { sets, reps, rest });
     ui.adjustSlot = null;
   }
-  else if (act === "editSpotter") { ui.spotterEdit = !ui.spotterEdit; }
+  else if (act === "editSpotter") { ui.spotterDraft = { name: spotterName(), ...spotterLook() }; }
+  else if (act === "cancelSpotter") { ui.spotterDraft = null; }
   else if (act === "saveSpotter") {
     const name = document.getElementById("spotterInput").value.trim();
     if (!name) { showToast("Give your Spotter a name first.", "is-error"); return; }
-    try { AUTH.user = await saveSpotterName(name); }
-    catch (e) { console.error("Spotter name didn't save", e); showToast("That name didn't save. Try again.", "is-error"); return; }
-    ui.spotterEdit = false;
+    const look = normalizeSpotterLook(ui.spotterDraft);
+    try { AUTH.user = await saveSpotter({ name, look }); }
+    catch (e) { console.error("Spotter didn't save", e); showToast("That didn't save. Try again.", "is-error"); return; }
+    ui.spotterDraft = null;
     showToast(`${name} is ready to spot you.`, "is-success");
+  }
+  else if (act === "goHome") { ui.activeTab = "home"; ui.homeAct = null; ui.homeLine = null; window.scrollTo && window.scrollTo(0, 0); }
+  else if (act === "leaveHome") { ui.activeTab = "dashboard"; ui.homeAct = null; ui.homeLine = null; }
+  else if (act === "homeAct") {
+    const kind = HOME_LINES[btn.dataset.v] ? btn.dataset.v : "tip";
+    const lines = HOME_LINES[kind];
+    ui.homeAct = kind === "tip" ? null : kind;
+    ui.homeLine = lines[Math.floor(Math.random() * lines.length)];
+  }
+  else if (act === "claimFurniture") {
+    const id = btn.dataset.v;
+    const piece = furnitureList(gameState()).find((p) => p.id === id);
+    if (!piece || piece.state !== "ready") return;
+    const items = homeClaimedIds().concat(id);
+    try { AUTH.user = await saveHomeItems(items); }
+    catch (e) { console.error("Furniture didn't save", e); showToast("That didn't save. Try again.", "is-error"); return; }
+    ui.homeAct = "dance";
+    ui.homeLine = `The ${piece.f.name.toLowerCase()} looks perfect there!`;
+    render();
+    celebrate("New furniture!", piece.f.name);
+    return;
   }
   else if (act === "newGoalForm") { ui.newGoalOpen = !ui.newGoalOpen; }
   else if (act === "createGoal") { await submitNewGoal(); return; }

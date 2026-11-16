@@ -270,6 +270,60 @@ the import is skipped.
 
 ## Changelog
 
+### 2026-11-16 — Home: the Spotter's room and a furniture catalogue (live)
+- Fish asked for a "go back home" place off the street, with furniture earned through quests.
+  Fish's picks: claim pieces tied to achievements (no currency), fixed spots, Spotter only (no
+  player character yet).
+- New `js/home.js` (loads after `spotter.js`, before `app.js`): `FURNITURE` (14 pieces, each with
+  pixel art, a fixed spot in a 200×150 room and an unlock), `furnitureList(game)` giving each piece
+  a state (`in`, `ready`, `locked`), `homeRoomSVG` (the room as one SVG, so it renders in the vm
+  tests too), `homeTab(game)` and `homeDoorButton(game)`.
+- Unlocks: bed and window come with the room; rug L2, plant L3, lamp L4, bookshelf L5, sofa L7;
+  dumbbell rack (First clear), photo wall (Food album), star poster (Star week), string lights
+  (Every box ticked), trophy shelf (High score), yoga mat (Rest is a skill), arcade machine (Boss down).
+- Claimed ids are saved to auth `user_metadata.home_items` via `saveHomeItems` (`supabase.js`). No
+  schema change. A claimed piece stays in the room for good.
+- Today: a gold "Go home" door sits on the street scene, with a count of pieces ready to claim.
+  Home (`ui.activeTab = "home"`, Today stays lit in the nav) shows the room with the Spotter on the
+  rug, CLAIM tags on ready spots, the Spotter's line with Pat / Dance / Nap, and the catalogue
+  (ready first, then in the room, then locked with how to earn them). The window shows night sky
+  after 7pm. The docked Spotter hides at home, since the Spotter is in the room.
+- Fish's follow-up: Pat, Dance and Nap are pixel icon buttons (heart, notes, moon with a Z) in an
+  action bar at the foot of the room frame (`.home-hud`, icons in `HOME_ICONS`), not text buttons
+  under it. The pressed one stays lit in lilac with a gold ring. The Spotter and CLAIM tags are
+  positioned against `.home-room-view` so the bar doesn't shift them.
+- Icon outlines were clipped at the grid edge; `homeIconSVG` now pads each icon with a blank pixel
+  before outlining. A test checks no coloured pixel touches the viewBox edge.
+- Cache bumped to `fitness-tracker-v17`. Tests cover unlock states, the room fitting every piece,
+  claiming (locked pieces refused), Pat/Nap and leaving home.
+
+### 2026-11-16 — Fewer habits, workout before habits (live)
+- Fish: five habits is too many; three at most. Removed "Hit 120g protein", "Drink your water"
+  and "Snacks I planned" from `habitDefs`, leaving sleep and steps (room for one more).
+- The removed ids are kept in `retiredHabitIds` (`data.js`) so their old ticks still earn XP in
+  `game.js`; the "Every box ticked" badge only counts the current list (`activeHabits`).
+- Today order is now meals, workout (Quest 2), habits (Quest 3), weekly boss.
+- Cache bumped to `fitness-tracker-v16`.
+
+### 2026-11-16 — Spotter on every screen, buddy picker, background music (live)
+- Fish couldn't see the Spotter cheer and couldn't customise it: it was only a tiny walker in the
+  Today city scene with a 3-second bubble.
+- New `js/spotter.js` (loads before `app.js`): five 16×16 pixel buddies (bunny, cat, frog, bear,
+  blob) in seven colours, with idle, blink and cheer frames, plus the shared picker markup.
+- The look is saved in auth `user_metadata.spotter_look` (`{kind, color}`) next to
+  `spotter_name`; `saveSpotterName` became `saveSpotter({name, look})`. No schema change.
+  Default is a lilac bunny.
+- `pixel.js` docks the Spotter above the tab bar on every tab (hidden while a sheet is open). It
+  bobs, blinks, hops and speaks on every XP gain and banner, and gives a tip when tapped. The
+  city scene no longer speaks on Today; tapping it makes the docked Spotter talk.
+- Me: a "Your Spotter" card replaces the settings row, with name, buddy and colour. Onboarding
+  step 1 has the same picker.
+- Music: "Juno Waltz", an original 32-bar chiptune in 3/4 played by Web Audio (pulse lead,
+  triangle bass, chord plucks). It starts on the first tap, pauses when the app is hidden, and
+  has a Music switch on Me (`prefs.music`). Fish asked for "It's a Small World"; that song is
+  under copyright, so Fish chose an original tune instead.
+- Cache bumped to `fitness-tracker-v15`.
+
 ### 2026-11-16 — Empty reps box logs the planned reps (live)
 - Live check as a guest on hera-ashen-five.vercel.app: sign-in, onboarding, habit, meal, set
   and every tab worked and survived a reload. One problem: the reps box shows the plan's reps

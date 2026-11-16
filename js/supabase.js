@@ -190,13 +190,23 @@ async function getSetHistory(userId, exerciseId) {
   return data;
 }
 
-// ---------- spotter name ----------
-// The Spotter's name lives in the auth user's metadata, so it follows the account across
-// devices without a schema change. Returns the updated user.
-async function saveSpotterName(name) {
-  const { data, error } = await sb.auth.updateUser({ data: { spotter_name: name } });
+// ---------- the Spotter ----------
+// The Spotter's name and look live in the auth user's metadata, so they follow the account
+// across devices without a schema change. Pass either or both. Returns the updated user.
+async function saveSpotter({ name, look }) {
+  const data = {};
+  if (name !== undefined) data.spotter_name = name;
+  if (look !== undefined) data.spotter_look = look;
+  const { data: result, error } = await sb.auth.updateUser({ data });
   if (error) throw error;
-  return data.user;
+  return result.user;
+}
+
+// The furniture claimed for Home (js/home.js), as a list of ids. Same metadata as the Spotter.
+async function saveHomeItems(items) {
+  const { data: result, error } = await sb.auth.updateUser({ data: { home_items: items } });
+  if (error) throw error;
+  return result.user;
 }
 
 // ---------- activity history (for XP, levels and badges in game.js) ----------

@@ -87,7 +87,7 @@ function renderLoginScreen(errorMsg) {
 
 // ---------- screen: onboarding ----------
 function renderOnboarding(user, profile) {
-  const state = { step: 0, name: profile.display_name || "", spotter: (user.user_metadata && user.user_metadata.spotter_name) || "", currentWeight: "", goalWeight: "", goalTitle: "", goalDate: "", level: "beginner", saving: false, error: "" };
+  const state = { step: 0, name: profile.display_name || "", spotter: (user.user_metadata && user.user_metadata.spotter_name) || "", look: normalizeSpotterLook(user.user_metadata && user.user_metadata.spotter_look), currentWeight: "", goalWeight: "", goalTitle: "", goalDate: "", level: "beginner", saving: false, error: "" };
   const steps = ["Level 1 · Your player", "Level 2 · Your quest", "Level 3 · Your pace"];
 
   function draw() {
@@ -96,7 +96,8 @@ function renderOnboarding(user, profile) {
       <label for="obName">Your name</label><input id="obName" type="text" autocomplete="given-name" placeholder="Your first name" value="${escapeAuth(state.name)}"/>
       <label for="obSpotter">Name your Spotter</label><input id="obSpotter" type="text" maxlength="20" autocomplete="off" placeholder="Pick a name" value="${escapeAuth(state.spotter)}"/>
       <div class="name-chips" role="group" aria-label="Starter names">${SPOTTER_NAMES.map((n) => `<button type="button" class="name-chip" data-spotter="${n}">${n}</button>`).join("")}</div>
-      <p class="field-help">Your Spotter is the buddy who cheers you on and keeps you company. You can rename them any time on Me.</p></div>`;
+      <div class="spotter-onboard"><span class="spotter-portrait">${spotterSVG(state.look, "cheer")}</span><div>${spotterPickerHTML(state.look)}</div></div>
+      <p class="field-help">Your Spotter is the buddy who cheers you on and keeps you company. You can change their name and look any time on Me.</p></div>`;
     else if (state.step === 1) content = `<div class="onboarding-fields">
       <label for="obGoalTitle">What are you training for?</label><input id="obGoalTitle" type="text" placeholder="e.g. Stronger by June, Bali trip" value="${escapeAuth(state.goalTitle)}"/>
       <label for="obGoalDate">Finish date <span>optional</span></label><input id="obGoalDate" type="date" value="${state.goalDate}"/>
@@ -115,6 +116,11 @@ function renderOnboarding(user, profile) {
       <div id="obMsg" class="form-message error">${state.error}</div><div class="onboarding-actions">${state.step ? '<button id="obBack" class="secondary-button">Back</button>' : ""}<button id="obNext" class="btn3d primary-button" style="--sd:var(--green-d)">${state.saving ? "Building your quest…" : state.step === 2 ? "Start my quest" : "Next level"}</button></div></main></div>`;
 
     document.querySelectorAll("[data-spotter]").forEach((btn) => btn.addEventListener("click", () => { document.getElementById("obSpotter").value = btn.dataset.spotter; }));
+    document.querySelectorAll("[data-spotter-kind], [data-spotter-color]").forEach((btn) => btn.addEventListener("click", () => {
+      state.name = document.getElementById("obName").value; state.spotter = document.getElementById("obSpotter").value;
+      state.look = normalizeSpotterLook({ ...state.look, ...(btn.dataset.spotterKind ? { kind: btn.dataset.spotterKind } : { color: btn.dataset.spotterColor }) });
+      draw();
+    }));
     document.querySelectorAll("[data-level]").forEach((btn) => btn.addEventListener("click", () => { readWeights(); state.level = btn.dataset.level; draw(); }));
     document.getElementById("obBack")?.addEventListener("click", () => { state.error = ""; state.step--; draw(); });
     document.getElementById("obNext").addEventListener("click", advance);
@@ -142,8 +148,8 @@ function renderOnboarding(user, profile) {
     state.saving = true; draw();
     try {
       await completeOnboarding(user.id, { displayName: state.name, trainingLevel: state.level });
-      // A missing Spotter name never blocks starting; it can be set on Me.
-      if (state.spotter) { try { await saveSpotterName(state.spotter); } catch (e) { console.error("Spotter name didn't save", e); } }
+      // The Spotter never blocks starting; its name and look can be set on Me.
+      try { await saveSpotter(state.spotter ? { name: state.spotter, look: state.look } : { look: state.look }); } catch (e) { console.error("Spotter didn't save", e); }
       // Local date, not UTC: in Malaysia (UTC+8) toISOString() is still yesterday before 8am.
       const d = new Date();
       const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;

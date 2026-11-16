@@ -219,13 +219,13 @@ function dietForDay(dayType) { return dayType === "rest" ? restMeals : trainingM
 
 // ---------- habits ----------
 // Labels are what people read; ids are stored in habit_logs, so never rename an id.
+// Keep this list to three at most: a short list gets ticked, a long one gets skipped.
 const habitDefs = [
-  { id: "protein", label: "Hit 120g protein", icon: "🍗" },
-  { id: "water", label: "Drink your water", icon: "💧" },
   { id: "sleep", label: "Sleep 7+ hours", icon: "😴" },
   { id: "steps", label: "Walk 8,000 steps", icon: "👟" },
-  { id: "nosnack", label: "Snacks I planned", icon: "🍎" },
 ];
+// Habits that used to be on the list. Their old ticks still count for XP in game.js.
+const retiredHabitIds = ["protein", "water", "nosnack"];
 
 // ---------- guide ----------
 const guideSections = [
