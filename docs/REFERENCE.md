@@ -270,6 +270,22 @@ the import is skipped.
 
 ## Changelog
 
+### 2026-11-17 — Juno landing page at /landing/ (live)
+- Fish asked for a one-page site that sells Juno, built with the tasteskill kit, kept apart from
+  the app: `landing/index.html` (+ `landing/img/`, `landing/favicon.svg`, kit copy in
+  `landing/assets/`, trimmed to the 17 files the page loads, 476 KB). Live at
+  https://hera-ashen-five.vercel.app/landing/; the app stays at the site root.
+- Sections: centred hero ("A gym journal for people who restart", three real app screens, "Try
+  Juno free" opens https://hera-ashen-five.vercel.app/), Juno's 3 daily quests (meals 20 XP, sets
+  5 XP, habits, levels and 10 badges), a "Small days count." letters moment, the Spotter beside
+  Home, Questions, closing "Start with one meal photo".
+- Juno's own colours (cream `#fff6e0`, ink `#26211c`, green `#237a32`) over the dealt palette;
+  Urbanist + DM Mono for the page, pixel look only inside the screenshots.
+- Finish gate: PASS on 2026-11-17 (10 warnings, none blocking). Share image `landing/share.jpg`
+  (1200×630, the desktop hero). Canonical and og:image point at the vercel.app address until Juno
+  has its own domain. Stand-in: `mailto:hello@juno.example`.
+- `.gitignore` now skips `.taste-skill/` (the kit's check output) and `landing/shots/`.
+
 ### 2026-11-16 — Home: the Spotter's room and a furniture catalogue (live)
 - Fish asked for a "go back home" place off the street, with furniture earned through quests.
   Fish's picks: claim pieces tied to achievements (no currency), fixed spots, Spotter only (no
